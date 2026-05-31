@@ -1,0 +1,2436 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הגעת אליי — הסוכן</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f6ff;--card:#fff;--border:rgba(0,0,0,.08);
+  --text:#0f172a;--mid:#475569;--dim:#94a3b8;
+  --blue:#2563eb;--blue2:#1d4ed8;--green:#059669;
+  --amber:#d97706;--red:#dc2626;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.14);
+  --ease:cubic-bezier(.23,1,.32,1);
+}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── ENTRY OVERLAY ── */
+#entry-overlay{
+  position:fixed;inset:0;
+  background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#4f46e5 100%);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;transition:opacity .5s var(--ease);
+}
+#entry-overlay.hidden{opacity:0;pointer-events:none}
+.entry-card{
+  background:#fff;border-radius:24px;padding:48px 40px;
+  width:min(440px,92vw);text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.entry-plane{font-size:52px;display:block;margin-bottom:16px}
+.entry-card h1{font-size:28px;font-weight:800;margin-bottom:4px}
+.entry-card .esub{color:var(--mid);font-size:16px;margin-bottom:32px}
+.entry-card input{
+  width:100%;padding:14px 16px;border:2px solid var(--border);
+  border-radius:12px;font-family:inherit;font-size:15px;
+  background:#f8fafc;transition:border-color .2s;text-align:left;direction:ltr;
+  margin-bottom:8px;
+}
+.entry-card input:focus{outline:none;border-color:var(--blue);background:#fff}
+.entry-btn{
+  width:100%;padding:14px;background:var(--blue);color:#fff;
+  border:none;border-radius:12px;font-family:inherit;
+  font-size:16px;font-weight:700;cursor:pointer;
+  transition:background .2s,transform .1s;
+}
+.entry-btn:hover{background:var(--blue2)}
+.entry-btn:active{transform:scale(.98)}
+.entry-note{font-size:13px;color:var(--dim);margin-top:16px}
+.entry-note a{color:var(--blue);text-decoration:none}
+#entry-error{color:var(--red);font-size:14px;margin-top:6px;margin-bottom:4px;display:none}
+
+/* ── HEALTH BANNER ── */
+#health-banner{
+  position:fixed;top:0;left:0;right:0;height:0;overflow:hidden;
+  z-index:200;transition:height .3s;
+}
+#health-banner.visible{height:36px}
+.health-inner{
+  background:var(--red);color:#fff;text-align:center;
+  padding:8px 16px;font-size:13px;font-weight:500;
+}
+
+/* ── LANDING ── */
+#landing{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:#080c14;padding:40px 24px 56px;gap:36px;
+  transition:opacity .4s var(--ease);
+}
+#landing.hidden{opacity:0;pointer-events:none;position:fixed;inset:0}
+.hero{text-align:center}
+.hero-eyebrow{
+  font-size:12px;font-weight:700;letter-spacing:5px;
+  text-transform:uppercase;color:#6366f1;margin-bottom:18px;
+}
+.hero-title{
+  font-size:clamp(58px,10vw,120px);font-weight:900;
+  color:#fff;line-height:.9;letter-spacing:-4px;
+  text-transform:uppercase;
+}
+.hero-title span{color:#6366f1}
+.hero-subtitle{
+  font-size:clamp(14px,2vw,20px);font-weight:400;
+  color:rgba(255,255,255,.5);margin-top:22px;letter-spacing:.3px;
+}
+/* cards grid */
+.hero-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:16px;width:100%;max-width:1260px;
+}
+.hero-card{
+  position:relative;border-radius:22px;overflow:hidden;
+  aspect-ratio:3/4;cursor:pointer;border:none;padding:0;
+  background:#111;
+}
+.hero-card img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .55s cubic-bezier(.25,.46,.45,.94);
+}
+.hero-card:hover img{transform:scale(1.08)}
+.hero-card-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.15) 55%,transparent 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:28px 24px;text-align:right;
+  transition:background .35s;
+}
+.hero-card:hover .hero-card-overlay{
+  background:linear-gradient(to top,rgba(0,0,0,.92) 0%,rgba(0,0,0,.35) 65%,transparent 100%);
+}
+.hero-card-icon{font-size:38px;margin-bottom:10px}
+.hero-card-title{
+  font-size:clamp(26px,3.5vw,42px);font-weight:900;
+  color:#fff;letter-spacing:-1px;line-height:1;
+  text-transform:uppercase;
+}
+.hero-card-sub{font-size:14px;color:rgba(255,255,255,.65);margin-top:8px;font-weight:400}
+.hero-card-cta{
+  margin-top:18px;display:inline-block;
+  background:#6366f1;color:#fff;border-radius:10px;
+  padding:10px 20px;font-size:14px;font-weight:700;
+  opacity:0;transform:translateY(12px);
+  transition:opacity .3s,transform .3s;font-family:inherit;
+}
+.hero-card:hover .hero-card-cta{opacity:1;transform:translateY(0)}
+@media(max-width:720px){
+  .hero-cards{grid-template-columns:1fr}
+  .hero-card{aspect-ratio:16/9}
+}
+
+/* ── DRAWER OVERLAY ── */
+#drawer-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);
+  z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+#drawer-overlay.visible{opacity:1;pointer-events:all}
+
+/* ── SEARCH DRAWER → centered modal ── */
+#drawer{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.94);
+  width:min(580px,94vw);
+  max-height:90vh;
+  background:#fff;z-index:400;
+  border-radius:24px;
+  display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.35);
+  opacity:0;pointer-events:none;
+  transition:transform .3s var(--ease),opacity .3s;
+}
+#drawer.open{
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;pointer-events:all;
+}
+.drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 28px;border-bottom:1px solid var(--border);flex-shrink:0;
+  border-radius:24px 24px 0 0;
+}
+.drawer-close{
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:#f1f5f9;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.drawer-close:hover{background:#e2e8f0}
+.drawer-title{font-size:20px;font-weight:700}
+.drawer-body{flex:1;overflow-y:auto;padding:22px 28px;display:flex;flex-direction:column;gap:16px;overscroll-behavior:contain;scroll-behavior:smooth}
+
+/* section cards */
+.scard{background:#f8fafc;border-radius:16px;padding:18px;border:1px solid var(--border)}
+.stitle{font-size:12px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+
+/* form fields */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fwrap{display:flex;flex-direction:column;gap:5px}
+.flabel{font-size:12px;font-weight:600;color:var(--mid)}
+select,input[type=text],input[type=date],input[type=number]{
+  width:100%;padding:11px 13px;border:1.5px solid var(--border);
+  border-radius:10px;font-family:inherit;font-size:14px;
+  color:var(--text);background:#fff;transition:border-color .2s;
+  -webkit-appearance:none;appearance:none;
+}
+select:focus,input:focus{outline:none;border-color:var(--blue)}
+select:disabled{background:#f1f5f9;color:var(--dim);cursor:not-allowed}
+.sel-wrap{position:relative}
+.sel-wrap::after{
+  content:'▾';position:absolute;left:12px;top:50%;
+  transform:translateY(-50%);font-size:12px;color:var(--dim);pointer-events:none;
+}
+
+/* searchable select */
+.ss-wrap{position:relative}
+.ss-wrap input{padding-left:32px;cursor:text}
+.ss-wrap input:disabled{cursor:not-allowed;background:#f1f5f9;color:var(--dim)}
+.ss-wrap::after{
+  content:'▾';position:absolute;left:12px;top:13px;
+  font-size:12px;color:var(--dim);pointer-events:none;
+}
+.ss-list{
+  position:absolute;top:calc(100% + 4px);right:0;left:0;
+  background:#fff;border:1.5px solid var(--blue);border-radius:10px;
+  max-height:220px;overflow-y:auto;z-index:900;display:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.13);
+}
+.ss-list.open{display:block}
+.ss-opt{padding:10px 13px;cursor:pointer;font-size:14px;transition:background .1s}
+.ss-opt:hover,.ss-opt.focused{background:#dbeafe;color:#1e40af}
+.ss-empty{padding:12px 13px;color:var(--dim);font-size:13px}
+
+/* stars */
+.stars-row{display:flex;gap:6px}
+.star-btn{
+  flex:1;padding:11px 4px;border:1.5px solid var(--border);
+  border-radius:8px;background:#fff;font-size:13px;
+  cursor:pointer;transition:all .15s;font-family:inherit;
+  min-height:44px;
+}
+.star-btn.active{background:#fef3c7;border-color:#d97706;color:#92400e;font-weight:700}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:4px;background:linear-gradient(to left,#e2e8f0 0%,#e2e8f0 100%);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#6366f1;cursor:pointer;box-shadow:0 2px 8px rgba(99,102,241,.4);border:3px solid #fff}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#6366f1;cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(99,102,241,.4)}
+.fam-btn{
+  padding:11px 14px;border:1.5px solid #93c5fd;border-radius:8px;
+  background:#fff;font-size:13px;cursor:pointer;font-family:inherit;color:#1e40af;transition:all .15s;
+  min-height:44px;
+}
+.fam-btn.active{background:#1e40af;color:#fff;border-color:#1e40af;font-weight:700}
+.nbh-option{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  border:1.5px solid var(--border);border-radius:8px;cursor:pointer;
+  background:#fff;transition:all .15s;font-size:13px;text-align:right;
+}
+.nbh-option:hover{border-color:#6366f1;background:#f5f3ff}
+.nbh-option.selected{border-color:#6366f1;background:#ede9fe;font-weight:600}
+.nbh-option input[type=checkbox]{accent-color:#6366f1}
+#nbh-any{width:100%;text-align:right;font-family:inherit;font-size:13px;cursor:pointer}
+
+/* strategy tip card */
+.tip-country{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;background:#dbeafe;border-radius:8px;
+  font-size:13px;font-weight:500;color:#1e40af;
+}
+.tip-platform{
+  padding:7px 14px;background:var(--blue);color:#fff;
+  border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;
+  transition:background .2s;display:inline-block;
+}
+.tip-platform:hover{background:var(--blue2)}
+
+/* loading */
+.loading-row{display:flex;align-items:center;gap:8px;color:var(--mid);font-size:13px;padding:4px 0}
+.spinner{
+  width:16px;height:16px;border:2px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin .8s linear infinite;display:inline-block;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* drawer footer */
+.drawer-footer{padding:18px 28px;border-top:1px solid var(--border);flex-shrink:0;border-radius:0 0 24px 24px}
+#search-btn{
+  width:100%;padding:16px;background:var(--blue);color:#fff;
+  border:none;border-radius:14px;font-family:inherit;
+  font-size:17px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+#search-btn:hover{background:var(--blue2);transform:translateY(-1px)}
+#search-btn:disabled{background:var(--dim);cursor:not-allowed;transform:none}
+
+/* coming soon */
+.coming-soon{text-align:center;padding:36px 0;color:var(--dim)}
+.coming-soon .cs-icon{font-size:44px;display:block;margin-bottom:12px}
+
+/* ── VERIFY MODAL ── */
+#verify-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:600;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+#verify-modal.visible{opacity:1;pointer-events:all}
+.verify-card{
+  background:#fff;border-radius:20px;padding:28px;
+  width:min(500px,92vw);max-height:80vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+}
+.verify-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.verify-sub{font-size:14px;color:var(--mid);margin-bottom:18px}
+.v-hotel-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.v-hotel{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;border:1.5px solid var(--border);
+  border-radius:12px;background:#f8fafc;
+}
+.v-hotel img{width:64px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.v-hotel-info{flex:1}
+.v-hotel-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.v-hotel-meta{font-size:12px;color:var(--mid)}
+.v-hotel-price{font-size:14px;font-weight:700;color:var(--green);white-space:nowrap}
+.v-btns{display:flex;gap:10px}
+.v-btn-go{
+  flex:1;padding:12px;background:var(--blue);color:#fff;
+  border:none;border-radius:10px;font-family:inherit;
+  font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;
+}
+.v-btn-go:hover{background:var(--blue2)}
+.v-btn-cancel{
+  padding:12px 20px;background:#f1f5f9;border:none;
+  border-radius:10px;font-family:inherit;font-size:15px;cursor:pointer;
+}
+.v-btn-cancel:hover{background:#e2e8f0}
+.v-cd{font-size:12px;color:var(--dim);text-align:center;margin-top:10px}
+
+/* ── RESULTS PAGE ── */
+#results-page{min-height:100vh;background:var(--bg);width:100%}
+#results-page.hidden{display:none}
+.results-topbar{
+  position:sticky;top:0;background:#fff;
+  border-bottom:1px solid var(--border);padding:14px 24px;
+  display:flex;align-items:center;gap:16px;z-index:50;
+}
+.back-btn{
+  padding:8px 16px;background:#f1f5f9;border:none;
+  border-radius:8px;font-family:inherit;font-size:14px;
+  cursor:pointer;transition:background .2s;
+}
+.back-btn:hover{background:#e2e8f0}
+.results-heading{font-size:18px;font-weight:700}
+.results-content{max-width:1200px;width:100%;margin:0 auto;padding:28px 24px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+
+/* best deal */
+#best-deal-card{
+  background:linear-gradient(135deg,#1e40af,#4f46e5);
+  border-radius:20px;padding:26px;color:#fff;display:none;
+}
+.best-label{font-size:12px;font-weight:600;opacity:.8;text-transform:uppercase;letter-spacing:1px}
+.best-name{font-size:24px;font-weight:800;margin:4px 0}
+.best-country{font-size:14px;opacity:.85;margin-bottom:18px}
+.best-stats{display:flex;gap:24px;flex-wrap:wrap}
+.best-stat-val{font-size:28px;font-weight:800}
+.best-stat-lbl{font-size:12px;opacity:.75}
+.best-link{
+  display:inline-block;margin-top:18px;padding:10px 20px;
+  background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);
+  border-radius:10px;color:#fff;text-decoration:none;
+  font-size:14px;font-weight:600;transition:background .2s;
+}
+.best-link:hover{background:rgba(255,255,255,.28)}
+
+/* ── ATTRACTIONS ── */
+.cat-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.cat-chip{
+  padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all .18s;color:var(--text);
+}
+.cat-chip.active{background:#6366f1;color:#fff;border-color:#6366f1;box-shadow:0 2px 8px rgba(99,102,241,.35)}
+.trip-purpose-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.purpose-btn{
+  padding:8px 16px;border-radius:10px;border:1.5px solid var(--border);
+  background:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all .18s;color:var(--text);
+}
+.purpose-btn.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+.loc-mode-toggle{display:flex;gap:0;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-top:8px}
+.loc-mode-btn{
+  flex:1;padding:9px 12px;border:none;background:#f8fafc;font-family:inherit;
+  font-size:13px;font-weight:600;cursor:pointer;color:var(--mid);transition:all .18s;
+}
+.loc-mode-btn.active{background:#6366f1;color:#fff}
+/* attraction results grid */
+.attr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:4px}
+.attr-card{
+  background:#fff;border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;
+  cursor:default;
+}
+.attr-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.attr-img{width:100%;height:160px;object-fit:cover;display:block;background:#e2e8f0}
+.attr-img-placeholder{width:100%;min-height:160px;background:linear-gradient(135deg,#e0e7ff,#dbeafe);display:flex;align-items:center;justify-content:center;font-size:42px}
+.attr-body{padding:14px 16px}
+.attr-name{font-size:16px;font-weight:800;color:#1e293b;margin-bottom:6px;line-height:1.25}
+.attr-type{font-size:11px;color:#6366f1;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.attr-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.attr-badge{
+  padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;
+}
+.attr-badge.rating{background:#fef9c3;color:#713f12}
+.attr-badge.age{background:#dcfce7;color:#166534}
+.attr-badge.dur{background:#e0e7ff;color:#3730a3}
+.attr-badge.price{background:#fce7f3;color:#831843}
+.attr-desc{font-size:12px;color:var(--mid);margin-bottom:10px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.attr-nearby{font-size:11px;color:var(--dim);margin-bottom:10px}
+.attr-actions{display:flex;gap:8px;flex-wrap:wrap}
+.attr-btn{
+  padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;
+  text-decoration:none;border:none;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+.attr-btn.maps{background:#eff6ff;color:#1d4ed8}
+.attr-btn.maps:hover{background:#dbeafe}
+.attr-btn.site{background:#f0fdf4;color:#166534}
+.attr-btn.site:hover{background:#dcfce7}
+.attr-btn.viator{background:#fff7ed;color:#9a3412}
+.attr-btn.viator:hover{background:#ffedd5}
+.multi-city-banner{
+  background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;
+  padding:14px 16px;margin-bottom:14px;
+}
+
+/* progress */
+#progress-section{background:#fff;border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+#progress-section h3{font-size:14px;font-weight:600;color:var(--mid);margin-bottom:14px}
+#progress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px}
+.pg-cell{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:10px;
+  border:1.5px solid var(--border);background:#f8fafc;
+}
+.pg-cell.found{border-color:#86efac;background:#f0fdf4}
+.pg-cell.error{border-color:#fca5a5;background:#fef2f2}
+.pg-flag{font-size:20px}
+.pg-info{flex:1;min-width:0}
+.pg-name{font-size:11px;font-weight:500;color:var(--mid)}
+.pg-price{font-size:13px;font-weight:700;color:var(--green)}
+.pg-err{font-size:11px;color:var(--red);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* table */
+#results-table-section{background:#fff;border-radius:16px;padding:20px;box-shadow:var(--shadow);overflow-x:auto}
+#results-table-section h3{font-size:14px;font-weight:600;color:var(--mid);margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;font-weight:600;color:var(--mid);padding:8px 12px;text-align:right;border-bottom:2px solid var(--border)}
+td{padding:12px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.td-price{font-weight:700;color:var(--green)}
+.td-best{font-size:11px;color:var(--amber)}
+
+@media(max-width:480px){
+  .action-buttons{flex-direction:column;align-items:center}
+  .action-btn{width:210px}
+  #drawer{width:96vw;max-height:95vh;border-radius:18px}
+  .frow{grid-template-columns:1fr}
+  .chips-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ENTRY OVERLAY -->
+<!-- ENTRY STEP 1: Incognito warning -->
+<div id="entry-step1" style="position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#1e40af 100%);display:flex;align-items:center;justify-content:center;z-index:1000;transition:opacity .5s">
+  <div style="text-align:center;padding:40px 24px;max-width:560px;width:92vw">
+    <div style="font-size:72px;margin-bottom:24px">🕵️</div>
+    <div style="font-size:clamp(26px,5vw,40px);font-weight:900;color:#fff;margin-bottom:12px;line-height:1.15">
+      רגע לפני שמתחילים
+    </div>
+    <div style="font-size:clamp(16px,3vw,22px);font-weight:700;color:#93c5fd;margin-bottom:28px">
+      חובה לעבוד מחלון אנונימי
+    </div>
+    <div style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:18px;padding:24px;margin-bottom:32px;text-align:right">
+      <div style="font-size:15px;color:#e2e8f0;line-height:1.8">
+        כל מה שתחפש <b style="color:#fff">יישמר בדפדפן שלך</b> אם לא תהיה בחלון אנונימי —
+        כולל מחירים, יעדים ומידע אישי.<br><br>
+        <span style="color:#fbbf24;font-weight:700">כנס עכשיו לחלון אנונימי ופתח שוב את הקישור</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px">
+      <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:12px 20px;color:#cbd5e1;font-size:13px">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px">Chrome / Edge</div>
+        Ctrl + Shift + N
+      </div>
+      <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:12px 20px;color:#cbd5e1;font-size:13px">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px">Firefox</div>
+        Ctrl + Shift + P
+      </div>
+      <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:12px 20px;color:#cbd5e1;font-size:13px">
+        <div style="font-weight:700;color:#fff;margin-bottom:4px">Safari (Mac)</div>
+        ⌘ + Shift + N
+      </div>
+    </div>
+    <button onclick="goToStep2()" style="padding:18px 48px;background:#2563eb;color:#fff;border:none;border-radius:16px;font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(37,99,235,.5)">
+      ✓ אני בחלון אנונימי — אפשר להמשיך
+    </button>
+    <button onclick="goToStep2()" style="margin-top:16px;font-size:13px;color:#64748b;cursor:pointer;background:none;border:none;font-family:inherit">
+      דלג (לא מומלץ)
+    </button>
+  </div>
+</div>
+
+<!-- ENTRY STEP 2: API Key -->
+<div id="entry-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#4f46e5 100%);align-items:center;justify-content:center;z-index:1000;transition:opacity .5s">
+  <div class="entry-card">
+    <span class="entry-plane">✈️</span>
+    <h1>הגעת אליי</h1>
+    <p class="esub">הסוכן</p>
+    <input id="entry-key" type="password" placeholder="הדבק כאן את ה-SerpAPI Key שלך"
+           onkeydown="if(event.key==='Enter')confirmKey()">
+    <div id="entry-error">⚠️ נא להזין מפתח תקין</div>
+    <button class="entry-btn" onclick="confirmKey()">כניסה ✓</button>
+    <div style="margin:16px 0;display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.4)">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.15)"></div>
+      <span style="font-size:12px">או</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.15)"></div>
+    </div>
+    <button class="entry-btn" onclick="enterDemo()" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25)">
+      🎭 כניסה במצב דמו (ללא API Key)
+    </button>
+    <p class="entry-note">
+      אין לך מפתח? הירשם בחינם ב-<a href="https://serpapi.com" target="_blank" rel="noopener">serpapi.com</a>
+    </p>
+  </div>
+</div>
+
+<!-- HEALTH BANNER -->
+<div id="health-banner">
+  <div class="health-inner">⚠️ השרת לא מגיב — הפעל את start.bat ורענן את הדף</div>
+</div>
+
+<!-- LANDING PAGE -->
+<div id="landing">
+  <div class="hero">
+    <div class="hero-eyebrow">✦ &nbsp; הגעת אליי &nbsp; ✦</div>
+    <div class="hero-title">SMART<br><span>TRAVEL</span></div>
+    <div class="hero-subtitle">הסוכן שמשיג לך את המחיר האמיתי — ושאף אחד לא יעבוד עליך</div>
+  </div>
+
+  <div class="hero-cards">
+
+    <!-- FLIGHT -->
+    <button class="hero-card" onclick="openDrawer('flight')">
+      <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=900&q=85"
+           alt="מבט מחלון המטוס" loading="lazy"
+           onerror="this.style.opacity='.3'">
+      <div class="hero-card-overlay">
+        <div class="hero-card-icon">✈️</div>
+        <div class="hero-card-title">FLIGHTS</div>
+        <div class="hero-card-sub">חפש את המחיר הנמוך ביותר מכל מדינה</div>
+        <span class="hero-card-cta">חפש טיסה &larr;</span>
+      </div>
+    </button>
+
+    <!-- HOTEL -->
+    <button class="hero-card" onclick="openDrawer('hotel')">
+      <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=85"
+           alt="בריכת מלון יוקרה" loading="lazy"
+           onerror="this.style.opacity='.3'">
+      <div class="hero-card-overlay">
+        <div class="hero-card-icon">🏊</div>
+        <div class="hero-card-title">HOTELS</div>
+        <div class="hero-card-sub">מלון חלומי — במחיר שלא ידעת שקיים</div>
+        <span class="hero-card-cta">חפש מלון &larr;</span>
+      </div>
+    </button>
+
+    <!-- EXPERIENCE -->
+    <button class="hero-card" onclick="openDrawer('attraction')">
+      <img src="https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=900&q=85"
+           alt="כדור פורח ושמיים" loading="lazy"
+           onerror="this.style.opacity='.3'">
+      <div class="hero-card-overlay">
+        <div class="hero-card-icon">🎈</div>
+        <div class="hero-card-title">EXPERIENCE</div>
+        <div class="hero-card-sub">חוויות שישארו איתך לכל החיים</div>
+        <span class="hero-card-cta">גלה אטרקציות &larr;</span>
+      </div>
+    </button>
+
+  </div>
+</div>
+
+<!-- DRAWER OVERLAY -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+
+<!-- SEARCH DRAWER -->
+<div id="drawer">
+  <div class="drawer-header">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <span class="drawer-title" id="drawer-title">חיפוש</span>
+    <div style="width:36px"></div>
+  </div>
+
+  <div class="drawer-body">
+
+    <!-- GEO -->
+    <div class="scard">
+      <div class="stitle">יעד הנסיעה</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        <div class="fwrap">
+          <label class="flabel">יבשת</label>
+          <div class="sel-wrap">
+            <select id="sel-continent" onchange="onContinentChange()">
+              <option value="">— בחר יבשת —</option>
+              <option value="Asia">אסיה</option>
+              <option value="Europe">אירופה</option>
+              <option value="Americas-north">אמריקה הצפונית</option>
+              <option value="Americas-south">אמריקה הדרומית</option>
+              <option value="Africa">אפריקה</option>
+              <option value="Oceania">אוקיאניה</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fwrap">
+          <label class="flabel">מדינה</label>
+          <div class="ss-wrap" id="ss-country-wrap">
+            <input type="text" id="ss-country-inp" placeholder="— בחר יבשת קודם —"
+                   autocomplete="off" disabled
+                   oninput="filterSS('country')"
+                   onfocus="openSSDrop('country')"
+                   onkeydown="ssDirKey(event,'country')">
+            <div class="ss-list" id="ss-country-list"></div>
+          </div>
+        </div>
+
+        <div class="fwrap">
+          <label class="flabel" id="city-label">עיר יעד</label>
+          <div class="ss-wrap" id="ss-city-wrap">
+            <input type="text" id="ss-city-inp" placeholder="— בחר מדינה קודם —"
+                   autocomplete="off" disabled
+                   oninput="filterSS('city')"
+                   onfocus="openSSDrop('city')"
+                   onkeydown="ssDirKey(event,'city')">
+            <div class="ss-list" id="ss-city-list"></div>
+          </div>
+          <div id="cities-loading" class="loading-row" style="display:none">
+            <span class="spinner"></span> טוען ערים...
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BUDGET SLIDER — above everything else -->
+    <div id="budget-card" class="scard" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="stitle" style="margin:0">💰 תקציב ללילה</div>
+        <div id="budget-display" style="font-size:22px;font-weight:800;color:#6366f1">ללא הגבלה</div>
+      </div>
+      <input type="range" id="budget-slider" min="0" max="5000" step="5" value="0"
+             oninput="onBudgetSlide(this.value)"
+             style="width:100%;accent-color:#6366f1;cursor:pointer;height:6px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)">
+        <span>ללא הגבלה</span>
+        <span style="color:#6366f1;font-size:12px" id="budget-hint"></span>
+        <span>$5,000</span>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:var(--dim)">או הקלד:</span>
+        <input type="number" id="hotel-budget" placeholder="ללא הגבלה" min="0" max="5000"
+               oninput="onBudgetInput(this.value)"
+               style="width:110px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;color:#6366f1">
+        <span style="font-size:13px;color:var(--dim)">$/לילה</span>
+      </div>
+    </div>
+
+    <!-- NEIGHBORHOODS CARD — shown after city selected -->
+    <div id="neighborhoods-card" class="scard" style="display:none">
+      <div class="stitle">📍 באיזה אזור?</div>
+      <div id="nbh-loading" style="font-size:13px;color:var(--dim)">טוען אזורים...</div>
+      <div id="nbh-options" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <!-- HOTEL FORM -->
+    <div id="form-hotel" class="scard">
+      <div class="stitle">פרטי מלון</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="frow">
+          <div class="fwrap">
+            <label class="flabel">צ'ק-אין</label>
+            <input type="date" id="hotel-checkin">
+          </div>
+          <div class="fwrap">
+            <label class="flabel">צ'ק-אאוט</label>
+            <input type="date" id="hotel-checkout"
+              onchange="_onCheckoutChange()">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fwrap">
+            <label class="flabel">מבוגרים</label>
+            <input type="number" id="hotel-adults" value="2" min="1" max="8">
+          </div>
+          <div class="fwrap">
+            <label class="flabel">ילדים</label>
+            <input type="number" id="hotel-children" value="0" min="0" max="12" oninput="updateChildrenAges()">
+          </div>
+        </div>
+        <div id="children-ages-wrap" style="display:none">
+          <div class="flabel" style="margin-bottom:6px">גיל כל ילד</div>
+          <div id="children-ages-inputs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px"></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:6px">⚠️ גיל 16+ נספר כמבוגר בחיפוש</div>
+        </div>
+        <!-- FAMILY QUESTION — shown when children > 0 -->
+        <div id="family-q" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px">
+          <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:10px">👨‍👩‍👧 אתם נוסעים עם ילדים — מחפשים מלון מותאם למשפחות?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button id="fam-yes" class="fam-btn active" onclick="setFamilyPref('yes')">כן, מותאם למשפחות</button>
+            <button id="fam-no"  class="fam-btn"        onclick="setFamilyPref('no')">לא חשוב</button>
+          </div>
+        </div>
+        <div class="fwrap">
+          <label class="flabel">כוכבים מינימום</label>
+          <div class="stars-row">
+            <button class="star-btn active" data-stars="0" onclick="selectStars(0)">הכל</button>
+            <button class="star-btn" data-stars="3" onclick="selectStars(3)">3★</button>
+            <button class="star-btn" data-stars="4" onclick="selectStars(4)">4★</button>
+            <button class="star-btn" data-stars="5" onclick="selectStars(5)">5★</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLIGHT FORM -->
+    <div id="form-flight" class="scard" style="display:none">
+      <div class="stitle">פרטי טיסה</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="frow">
+          <div class="fwrap">
+            <label class="flabel">מוצא (קוד IATA)</label>
+            <input type="text" id="flight-origin" placeholder="TLV" maxlength="4" dir="ltr" style="text-transform:uppercase"
+              onblur="if(this.value.length>=3)_scrollNext(document.getElementById('flight-dest')?.parentElement,150)">
+          </div>
+          <div class="fwrap">
+            <label class="flabel">יעד (קוד IATA)</label>
+            <input type="text" id="flight-dest" placeholder="BKK" maxlength="4" dir="ltr" style="text-transform:uppercase"
+              onblur="if(this.value.length>=3)_scrollNext(document.getElementById('flight-depart')?.parentElement,150)">
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fwrap">
+            <label class="flabel">תאריך יציאה</label>
+            <input type="date" id="flight-depart">
+          </div>
+          <div class="fwrap">
+            <label class="flabel">תאריך חזרה (אופציונלי)</label>
+            <input type="date" id="flight-return"
+              onchange="_scrollNext(document.getElementById('flight-adults')?.parentElement,150)">
+          </div>
+        </div>
+        <div class="fwrap">
+          <label class="flabel">נוסעים</label>
+          <input type="number" id="flight-adults" value="1" min="1" max="8"
+            onchange="_signalReady()">
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTRACTION FORM -->
+    <div id="form-attraction" style="display:none">
+
+      <!-- Multi-city banner (shown when previous hotel searches detected) -->
+      <div id="multi-city-banner" class="multi-city-banner" style="display:none">
+        <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:10px">🌍 זיהינו שחיפשת מלון גם ב<span id="multi-city-name"></span> — רוצה לראות אטרקציות שם גם?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="addMultiCity()" class="fam-btn active" style="font-size:13px">✓ כן, הוסף לחיפוש</button>
+          <button onclick="dismissMultiCity()" class="fam-btn" style="font-size:13px">לא תודה</button>
+        </div>
+      </div>
+
+      <!-- Location mode -->
+      <div class="scard">
+        <div class="stitle">📍 מצב מיקום</div>
+        <div class="loc-mode-toggle">
+          <button class="loc-mode-btn active" id="loc-planning" onclick="setLocMode('planning')">🗺️ אני בדרך ליעד</button>
+          <button class="loc-mode-btn" id="loc-here" onclick="setLocMode('here')">📍 אני כבר שם</button>
+        </div>
+      </div>
+
+      <!-- Trip purpose -->
+      <div class="scard">
+        <div class="stitle">✈️ סוג הטיול</div>
+        <div class="trip-purpose-btns">
+          <button class="purpose-btn active" id="purpose-general" onclick="setTripPurpose('general')">🗺️ סיור כללי</button>
+          <button class="purpose-btn" id="purpose-family"  onclick="setTripPurpose('family')">👨‍👩‍👧 משפחה</button>
+          <button class="purpose-btn" id="purpose-couple"  onclick="setTripPurpose('couple')">💑 זוגי</button>
+          <button class="purpose-btn" id="purpose-solo"    onclick="setTripPurpose('solo')">🎒 סולו</button>
+        </div>
+      </div>
+
+      <!-- Category chips -->
+      <div class="scard">
+        <div class="stitle">🏷️ קטגוריות (בחר יותר מאחת)</div>
+        <div class="cat-chips">
+          <button class="cat-chip active" data-cat="general"   onclick="toggleCatChip(this,'general')">🗺️ הכל</button>
+          <button class="cat-chip" data-cat="extreme"  onclick="toggleCatChip(this,'extreme')" style="font-weight:800">🔥 אקסטרים</button>
+          <button class="cat-chip" data-cat="food"     onclick="toggleCatChip(this,'food')">🍜 אוכל</button>
+          <button class="cat-chip" data-cat="culture"  onclick="toggleCatChip(this,'culture')">🏛️ תרבות</button>
+          <button class="cat-chip" data-cat="nature"   onclick="toggleCatChip(this,'nature')">🌿 טבע</button>
+          <button class="cat-chip" data-cat="shopping" onclick="toggleCatChip(this,'shopping')">🛍️ קניות</button>
+          <button class="cat-chip" data-cat="nightlife" onclick="toggleCatChip(this,'nightlife')">🌙 לילה</button>
+        </div>
+      </div>
+
+      <!-- Group (reuse adults + children ages infrastructure) -->
+      <div class="scard">
+        <div class="stitle">👥 מי נוסע?</div>
+        <div class="frow" style="gap:16px;margin-bottom:12px">
+          <div class="fwrap">
+            <label class="flabel">מבוגרים</label>
+            <input type="number" id="attr-adults" value="2" min="1" max="20">
+          </div>
+          <div class="fwrap">
+            <label class="flabel">ילדים</label>
+            <input type="number" id="attr-children" value="0" min="0" max="12" oninput="updateAttrChildren()">
+          </div>
+          <div class="fwrap" id="attr-partial-wrap" style="display:none">
+            <label class="flabel">כרטיסים לכמה?</label>
+            <input type="number" id="attr-tickets" value="2" min="1" max="20">
+          </div>
+        </div>
+        <div id="attr-children-ages" style="display:none">
+          <div class="flabel" style="margin-bottom:6px">גיל כל ילד</div>
+          <div id="attr-ages-inputs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px"></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:6px">⚠️ גיל 16+ נספר כמבוגר בחיפוש</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- STRATEGY TIP -->
+    <div id="strategy-tip" class="scard" style="display:none">
+      <div class="stitle">אסטרטגיית חיפוש</div>
+      <div id="tip-text" style="font-size:13px;color:var(--mid);margin-bottom:14px;line-height:1.5"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--mid);margin-bottom:8px">נבדק מ:</div>
+      <div id="tip-countries" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--mid);margin-bottom:8px">פלטפורמות מומלצות לאזור זה:</div>
+      <div id="tip-platforms" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+
+  </div>
+
+  <div class="drawer-footer">
+    <button id="search-btn" onclick="startSearch()">🔍 חפש את המחיר הכי זול</button>
+  </div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div id="results-page" class="hidden">
+  <div class="results-topbar">
+    <button class="back-btn" onclick="backToLanding()">← חיפוש חדש</button>
+    <span class="results-heading" id="results-title">תוצאות</span>
+  </div>
+  <div class="results-content">
+    <div id="best-deal-card"></div>
+    <div id="search-debug" style="display:none;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:20px;padding:28px 32px;margin-bottom:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);direction:rtl;text-align:right;color:#fff"></div>
+    <div id="progress-section" style="display:none">
+      <h3>מצב חיפוש לפי מדינה</h3>
+      <div id="progress-grid"></div>
+    </div>
+    <div id="results-table-section" style="display:none">
+      <h3>כל התוצאות — ממוינות לפי מחיר</h3>
+      <div id="results-table-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VERIFY MODAL -->
+
+<script>
+// Local dev → localhost:5000 | Production → Render backend URL (set below)
+const RENDER_URL='';  // ← הדבק כאן את כתובת ה-Render שתקבל לאחר הדיפלוי
+const API=RENDER_URL||(location.hostname==='127.0.0.1'||location.hostname==='localhost'
+  ?'http://127.0.0.1:5000'
+  :'');  // ריק = שגיאה ידועה עד שמגדירים RENDER_URL
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+const GEO=[
+  {name:'🇮🇱 ישראל'},{name:'🇹🇭 תאילנד'},{name:'🇮🇳 הודו'},
+  {name:'🇸🇬 סינגפור'},{name:'🇺🇸 ארה"ב'},{name:'🇬🇧 בריטניה'},
+  {name:'🇩🇪 גרמניה'},{name:'🇦🇺 אוסטרליה'},{name:'🇯🇵 יפן'},
+  {name:'🇰🇷 קוריאה'},
+];
+
+const CONTINENT_STRATEGY={
+  'Asia':{
+    geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'],
+    tip:'הודו וסינגפור מחזירות עקביות את המחיר הנמוך ביותר בחיפוש מלונות ✈️ טיסות באסיה.',
+    platforms:[
+      {name:'Agoda',url:'https://www.agoda.com',color:'#e51837'},
+      {name:'Booking.com',url:'https://www.booking.com',color:'#003580'},
+    ],
+  },
+  'Europe':{
+    geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'],
+    tip:'הודו וסינגפור מחזירות לרוב מחיר גיאוגרפי זול יותר גם לאירופה.',
+    platforms:[
+      {name:'Booking.com',url:'https://www.booking.com',color:'#003580'},
+      {name:'Hotels.com',url:'https://www.hotels.com',color:'#c5002b'},
+    ],
+  },
+  'Americas-north':{
+    geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'],
+    tip:'הודו וסינגפור מחזירות לרוב מחיר זול יותר גם לצפון אמריקה.',
+    platforms:[
+      {name:'Hotels.com',url:'https://www.hotels.com',color:'#c5002b'},
+      {name:'Expedia',url:'https://www.expedia.com',color:'#00355f'},
+    ],
+  },
+  'Americas-south':{
+    geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'],
+    tip:'הודו וסינגפור כבסיסי מחיר זול לדרום אמריקה.',
+    platforms:[
+      {name:'Booking.com',url:'https://www.booking.com',color:'#003580'},
+      {name:'Expedia',url:'https://www.expedia.com',color:'#00355f'},
+    ],
+  },
+  'Africa':{
+    geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'],
+    tip:'הודו וסינגפור מחזירות מחיר גיאוגרפי נמוך גם לאפריקה.',
+    platforms:[
+      {name:'Booking.com',url:'https://www.booking.com',color:'#003580'},
+      {name:'Hotels.com',url:'https://www.hotels.com',color:'#c5002b'},
+    ],
+  },
+  'Oceania':{
+    geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'],
+    tip:'הודו וסינגפור מחזירות לרוב מחיר גיאוגרפי זול לאוסטרליה וניו זילנד.',
+    platforms:[
+      {name:'Booking.com',url:'https://www.booking.com',color:'#003580'},
+      {name:'Wotif',url:'https://www.wotif.com',color:'#e6007e'},
+    ],
+  },
+};
+
+let apiKey='',mode='hotel',stars=0;
+let activeStrategy=null;
+let pending=null,cdTimer=null,cdSecs=5;
+const ccache={},citcache={};
+
+const ssState={
+  country:{value:'',label:'',options:[],focusIdx:-1},
+  city:   {value:'',label:'',options:[],focusIdx:-1},
+};
+
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h.toString(36)}
+function today(){return new Date().toISOString().split('T')[0]}
+function addDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0]}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const t=today();
+  document.getElementById('hotel-checkin').value =addDays(t,30);
+  document.getElementById('hotel-checkout').value=addDays(t,37);
+  document.getElementById('flight-depart').value =addDays(t,30);
+  document.getElementById('flight-return').value =addDays(t,37);
+  apiKey=localStorage.getItem('serpapi_key')||'';
+  if(apiKey){
+    document.getElementById('entry-step1').style.display='none';
+    document.getElementById('entry-overlay').style.display='none';
+  }
+  startHealth();
+});
+
+/* ── ENTRY ── */
+function goToStep2(){
+  const s1=document.getElementById('entry-step1');
+  s1.style.opacity='0';s1.style.pointerEvents='none';
+  setTimeout(()=>{s1.style.display='none';},500);
+  const s2=document.getElementById('entry-overlay');
+  s2.style.display='flex';
+  setTimeout(()=>document.getElementById('entry-key').focus(),100);
+}
+
+function confirmKey(){
+  const v=document.getElementById('entry-key').value.trim();
+  if(!v||v.length<10){document.getElementById('entry-error').style.display='block';return}
+  apiKey=v;localStorage.setItem('serpapi_key',v);hideEntry();
+}
+function enterDemo(){
+  apiKey='DEMO';localStorage.removeItem('serpapi_key');hideEntry();
+  // show demo badge
+  const badge=document.createElement('div');
+  badge.innerHTML='🎭 מצב דמו — ללא API Key';
+  badge.style.cssText='position:fixed;bottom:16px;left:16px;background:#7c3aed;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;z-index:999;box-shadow:0 2px 12px rgba(124,58,237,.4)';
+  document.body.appendChild(badge);
+}
+function hideEntry(){
+  const el=document.getElementById('entry-overlay');
+  el.classList.add('hidden');
+  setTimeout(()=>el.style.display='none',520);
+}
+
+/* ── DEMO MODE ── */
+const DEMO_HOTELS=[
+  {name:'Kata Beach Resort & Spa',stars:4,hotel_class:'4-star hotel',rating:8.6,reviews:1240,price_base:112},
+  {name:'Karon Beach Hotel',stars:4,hotel_class:'4-star hotel',rating:8.2,reviews:870,price_base:98},
+  {name:'Phuket Grand Seaview Resort',stars:5,hotel_class:'5-star hotel',rating:9.1,reviews:2100,price_base:185},
+  {name:'Patong Palms Boutique',stars:4,hotel_class:'4-star hotel',rating:8.4,reviews:654,price_base:89},
+  {name:'Sunset Villa Kamala',stars:5,hotel_class:'5-star hotel',rating:9.3,reviews:3300,price_base:210},
+  {name:'Surin Beach Lodge',stars:4,hotel_class:'4-star hotel',rating:8.0,reviews:430,price_base:105},
+  {name:'Bang Tao Boutique Hotel',stars:4,hotel_class:'4-star hotel',rating:8.7,reviews:980,price_base:118},
+  {name:'Old Town Heritage Inn',stars:3,hotel_class:'3-star hotel',rating:7.9,reviews:320,price_base:62},
+  {name:'Rawai Beach Club',stars:5,hotel_class:'5-star hotel',rating:9.0,reviews:1560,price_base:195},
+  {name:'Naiharn Sea Breeze',stars:4,hotel_class:'4-star hotel',rating:8.3,reviews:710,price_base:94},
+];
+
+function demoHotelSearch(){
+  const p=pending;
+  const geoList=activeStrategy?activeStrategy.geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'];
+  showResultsPage('hotel');initPG(geoList);
+  const nights=_nightCount(p.ci,p.co);
+  const budget=p.budget;
+  const minStars=stars;
+  const hotelMap={};
+  let delay=0;
+  geoList.forEach((country,ci)=>{
+    delay+=800;
+    setTimeout(()=>{
+      // each country finds slightly different prices
+      const factor=[1,0.82,0.91][ci]||1;
+      const matched=DEMO_HOTELS.filter(h=>minStars===0||h.stars>=minStars);
+      const countryHotels=matched.map(h=>{
+        const price=Math.round(h.price_base*factor);
+        return{
+          hotel_name:h.name,stars:h.stars,hotel_class:h.hotel_class,
+          rating:h.rating,reviews:h.reviews,
+          price_num:price,price_per_night:`$${price}`,
+          total_price:`$${price*nights}`,nights,
+          country,link:'#',thumbnail:'',
+        };
+      }).filter(h=>budget===0||h.price_num<=budget);
+      let added=0;
+      countryHotels.forEach(h=>{
+        const key=h.hotel_name.toLowerCase();
+        if(!hotelMap[key]||h.price_num<hotelMap[key].price_num){hotelMap[key]=h;added++;}
+      });
+      if(added>0){
+        setPG(country,`${added} מלונות`,'found');
+        const merged=Object.values(hotelMap).sort((a,b)=>a.price_num-b.price_num);
+        renderHotels(merged,budget);
+      }
+      // else: all duplicates — don't update progress or table
+    },delay);
+  });
+}
+
+function _nightCount(ci,co){
+  try{return Math.max((new Date(co)-new Date(ci))/86400000,1)}catch{return 1}
+}
+
+/* ── HEALTH ── */
+function startHealth(){checkHealth();setInterval(checkHealth,8000)}
+async function checkHealth(){
+  try{
+    const r=await fetch(`${API}/countries`,{signal:AbortSignal.timeout(4000)});
+    document.getElementById('health-banner').classList.toggle('visible',!r.ok);
+  }catch{document.getElementById('health-banner').classList.add('visible')}
+}
+
+/* ── DRAWER ── */
+function openDrawer(m){
+  mode=m;
+  const t={hotel:'🏨 חיפוש מלון',flight:'✈️ חיפוש טיסה',attraction:'🎡 אטרקציות'};
+  document.getElementById('drawer-title').textContent=t[m]||'חיפוש';
+  document.getElementById('form-hotel').style.display      =m==='hotel'      ?'':'none';
+  document.getElementById('form-flight').style.display     =m==='flight'     ?'':'none';
+  document.getElementById('form-attraction').style.display =m==='attraction' ?'':'none';
+  document.getElementById('budget-card').style.display     =m==='hotel'      ?'':'none';
+  document.getElementById('city-label').textContent=m==='hotel'?'עיר יעד':'עיר';
+  if(m==='attraction') checkMultiCityContext();
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('visible');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('visible');
+  // If results page is visible but has no hotel/flight cards, go back to landing
+  const rp=document.getElementById('results-page');
+  if(!rp.classList.contains('hidden')){
+    const hasCards=document.getElementById('results-table-wrap').innerHTML.trim()!=='';
+    if(!hasCards)backToLanding();
+  }
+}
+
+/* ── CHILDREN ── */
+function updateChildrenAges(){
+  const n=Math.min(+document.getElementById('hotel-children').value||0,12);
+  const wrap=document.getElementById('children-ages-wrap');
+  const cont=document.getElementById('children-ages-inputs');
+  wrap.style.display=n>0?'':'none';
+  document.getElementById('family-q').style.display=n>0?'':'none';
+  if(n===0){familyPref='no';setFamilyPref('no');}
+  const cur=cont.querySelectorAll('input').length;
+  if(n>cur){
+    for(let i=cur;i<n;i++){
+      const inp=document.createElement('input');
+      inp.type='number';inp.min='0';inp.max='17';inp.value='5';
+      inp.style.cssText='width:68px;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;text-align:center';
+      inp.title=`גיל ילד ${i+1}`;inp.placeholder=`ילד ${i+1}`;
+      cont.appendChild(inp);
+    }
+  }else{
+    while(cont.querySelectorAll('input').length>n)cont.removeChild(cont.lastChild);
+  }
+}
+function getChildrenAges(){
+  return Array.from(document.querySelectorAll('#children-ages-inputs input')).map(i=>+i.value);
+}
+
+/* ── STARS ── */
+function selectStars(n){
+  stars=n;
+  document.querySelectorAll('.star-btn').forEach(b=>b.classList.toggle('active',+b.dataset.stars===n));
+  // Stars = last mandatory step → signal "ready to search"
+  _signalReady();
+}
+
+function _signalReady(){
+  const btn=document.getElementById('search-btn');
+  if(!btn) return;
+  // Pulse animation + color boost
+  btn.style.transition='transform .15s, box-shadow .15s';
+  btn.style.transform='scale(1.04)';
+  btn.style.boxShadow='0 0 0 4px rgba(99,102,241,.4)';
+  setTimeout(()=>{btn.style.transform='';btn.style.boxShadow='';}, 500);
+  // Scroll to search button so user sees it clearly
+  _scrollNext(btn.parentElement||btn, 200);
+}
+
+/* ── LONG STAY WARNING ── */
+function _onCheckoutChange(){
+  _scrollNext(document.getElementById('hotel-adults')?.closest('.frow')?.parentElement||document.getElementById('hotel-adults')?.parentElement, 200);
+  const ci=document.getElementById('hotel-checkin').value;
+  const co=document.getElementById('hotel-checkout').value;
+  let warn=document.getElementById('long-stay-warn');
+  if(ci&&co){
+    const nights=Math.round((new Date(co)-new Date(ci))/86400000);
+    if(nights>28){
+      if(!warn){
+        warn=document.createElement('div');warn.id='long-stay-warn';
+        warn.style.cssText='background:#fef3c7;border:1.5px solid #d97706;border-radius:10px;padding:10px 14px;font-size:13px;color:#92400e;margin-top:8px;line-height:1.6';
+        document.getElementById('hotel-checkout').closest('.frow').after(warn);
+      }
+      warn.innerHTML=`⚠️ <b>שהייה של ${nights} לילות</b> — Google Hotels API לא תומך בחיפוש מעל ~28 לילות ולא יחזיר תוצאות. <br>הסוכן יחפש מחירים ל-<b>7 לילות</b> ראשונים כדי להשוות.`;
+      warn.style.display='';
+    } else {
+      if(warn) warn.style.display='none';
+    }
+  }
+}
+
+/* ── BUDGET SLIDER ── */
+function onBudgetSlide(v){
+  v=+v;
+  document.getElementById('hotel-budget').value=v>0?v:'';
+  _refreshBudgetDisplay(v);
+  // color fill left side of slider
+  const pct=v/5000*100;
+  document.getElementById('budget-slider').style.background=
+    `linear-gradient(to right,#6366f1 ${pct}%,#e2e8f0 ${pct}%)`;
+}
+function onBudgetInput(v){
+  v=Math.min(Math.max(+v||0,0),5000);
+  document.getElementById('budget-slider').value=v;
+  _refreshBudgetDisplay(v);
+}
+function _refreshBudgetDisplay(v){
+  const disp=document.getElementById('budget-display');
+  const hint=document.getElementById('budget-hint');
+  if(!v||v===0){
+    disp.textContent='ללא הגבלה';disp.style.color='#9ca3af';
+    hint.textContent='';
+  }else{
+    disp.textContent=`$${v.toLocaleString()}`;disp.style.color='#6366f1';
+    hint.textContent=v<=80?'מלון בסיסי':v<=150?'מלון נוח':v<=300?'מלון איכותי':v<=600?'מלון יוקרתי':'סוויטה';
+  }
+}
+
+/* ── SEARCHABLE SELECT ── */
+function initSS(id,options){
+  const s=ssState[id];
+  s.options=options;s.value='';s.label='';s.focusIdx=-1;
+  const inp=document.getElementById(`ss-${id}-inp`);
+  inp.value='';
+  const ph={country:'חפש מדינה...',city:'חפש עיר...'};
+  inp.placeholder=options.length?ph[id]:(id==='country'?'— בחר יבשת קודם —':'— בחר מדינה קודם —');
+  inp.disabled=options.length===0;
+  closeSSDrop(id);
+}
+
+function filterSS(id){
+  const inp=document.getElementById(`ss-${id}-inp`);
+  const q=inp.value;
+  ssState[id].value='';ssState[id].label='';
+  const filtered=q
+    ?ssState[id].options.filter(o=>o.label.toLowerCase().includes(q.toLowerCase()))
+    :ssState[id].options;
+  renderSSList(id,filtered);
+  openSSDrop(id);
+}
+
+function renderSSList(id,options){
+  const list=document.getElementById(`ss-${id}-list`);
+  list.innerHTML='';ssState[id].focusIdx=-1;
+  if(!options.length){list.innerHTML='<div class="ss-empty">לא נמצאו תוצאות</div>';return}
+  options.forEach(opt=>{
+    const d=document.createElement('div');d.className='ss-opt';
+    d.textContent=opt.label;d.dataset.value=opt.value;
+    d.onmousedown=e=>{e.preventDefault();selectSS(id,opt.value,opt.label)};
+    list.appendChild(d);
+  });
+}
+
+function openSSDrop(id){
+  const list=document.getElementById(`ss-${id}-list`);
+  if(!ssState[id].options.length)return;
+  if(!list.children.length)renderSSList(id,ssState[id].options);
+  list.classList.add('open');
+}
+
+function closeSSDrop(id){
+  document.getElementById(`ss-${id}-list`).classList.remove('open');
+  ssState[id].focusIdx=-1;
+}
+
+/* ── AUTO-SCROLL: bring next section into view inside drawer ── */
+function _scrollNext(targetEl, delay=180){
+  if(!targetEl) return;
+  const body=document.querySelector('.drawer-body');
+  if(!body) return;
+  setTimeout(()=>{
+    const bodyRect=body.getBoundingClientRect();
+    const targetRect=targetEl.getBoundingClientRect();
+    const newScrollTop=body.scrollTop+(targetRect.top-bodyRect.top)-20;
+    body.scrollTo({top:Math.max(0,newScrollTop),behavior:'smooth'});
+  }, delay);
+}
+
+function selectSS(id,value,label){
+  ssState[id].value=value;ssState[id].label=label;
+  document.getElementById(`ss-${id}-inp`).value=label;
+  closeSSDrop(id);
+  if(id==='continent'){
+    onContinentChange();
+    // Scroll to country selector
+    _scrollNext(document.getElementById('ss-country-inp')?.closest('.scard'));
+  }
+  if(id==='country'){
+    onCountryChange();
+    _scrollNext(document.getElementById('ss-city-inp')?.closest('.scard'));
+  }
+  if(id==='city'){
+    onCityChange(value);
+    // Scroll to neighborhoods or dates (will update after neighborhoods load)
+    _scrollNext(document.getElementById('neighborhoods-card')||document.getElementById('hotel-checkin')?.closest('.scard'));
+  }
+}
+
+function ssDirKey(e,id){
+  const list=document.getElementById(`ss-${id}-list`);
+  const opts=list.querySelectorAll('.ss-opt');
+  if(e.key==='Escape'){closeSSDrop(id);return}
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(ssState[id].focusIdx>=0&&opts[ssState[id].focusIdx]){
+      const o=opts[ssState[id].focusIdx];selectSS(id,o.dataset.value,o.textContent);
+    }
+    return;
+  }
+  if(e.key==='ArrowDown'){
+    e.preventDefault();openSSDrop(id);
+    ssState[id].focusIdx=Math.min(ssState[id].focusIdx+1,opts.length-1);
+  }else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    ssState[id].focusIdx=Math.max(ssState[id].focusIdx-1,0);
+  }else{openSSDrop(id);return}
+  opts.forEach((o,i)=>o.classList.toggle('focused',i===ssState[id].focusIdx));
+  if(ssState[id].focusIdx>=0)opts[ssState[id].focusIdx].scrollIntoView({block:'nearest'});
+}
+
+document.addEventListener('click',e=>{
+  ['country','city'].forEach(id=>{
+    const wrap=document.getElementById(`ss-${id}-wrap`);
+    if(wrap&&!wrap.contains(e.target))closeSSDrop(id);
+  });
+});
+
+/* ── CASCADE DROPDOWNS ── */
+async function onContinentChange(){
+  const cont=document.getElementById('sel-continent').value;
+  initSS('country',[]);initSS('city',[]);
+  document.getElementById('strategy-tip').style.display='none';
+  activeStrategy=null;
+  if(!cont)return;
+
+  // set strategy
+  activeStrategy=CONTINENT_STRATEGY[cont]||null;
+  if(activeStrategy)showStrategyTip(activeStrategy);
+
+  const inp=document.getElementById('ss-country-inp');
+  inp.placeholder='טוען מדינות...';inp.disabled=true;
+  try{
+    const list=await fetchCountries(cont);
+    initSS('country',list.map(c=>({value:c.en,label:c.he})));
+  }catch{
+    document.getElementById('ss-country-inp').placeholder='שגיאה — נסה שוב';
+  }
+}
+
+function showStrategyTip(s){
+  document.getElementById('tip-text').textContent=s.tip;
+
+  const cEl=document.getElementById('tip-countries');
+  cEl.innerHTML='';
+  s.geoCountries.forEach(name=>{
+    const span=document.createElement('span');
+    span.className='tip-country';span.textContent=name;
+    cEl.appendChild(span);
+  });
+
+  const pEl=document.getElementById('tip-platforms');
+  pEl.innerHTML='';
+  s.platforms.forEach(p=>{
+    const a=document.createElement('a');
+    a.className='tip-platform';a.textContent=p.name;
+    a.href=p.url;a.target='_blank';a.rel='noopener';
+    a.style.background=p.color;
+    pEl.appendChild(a);
+  });
+
+  document.getElementById('strategy-tip').style.display='';
+}
+
+async function fetchCountries(cont){
+  if(ccache[cont])return ccache[cont];
+  const MAP={
+    'Asia':'asia','Europe':'europe',
+    'Americas-north':'americas-north','Americas-south':'americas-south',
+    'Africa':'africa','Oceania':'oceania',
+  };
+  const region=MAP[cont];if(!region)return[];
+  const r=await fetch(`${API}/geo/countries?region=${region}`,
+    {signal:AbortSignal.timeout(12000)});
+  if(!r.ok)throw new Error();
+  const data=await r.json(); // [{he,en},...]
+  ccache[cont]=data;return data;
+}
+
+async function onCountryChange(){
+  const en=ssState.country.value;
+  initSS('city',[]);
+  if(!en)return;
+  const loading=document.getElementById('cities-loading');
+  const inp=document.getElementById('ss-city-inp');
+  loading.style.display='flex';inp.placeholder='טוען ערים...';inp.disabled=true;
+  try{
+    const cities=await fetchCities(en);
+    loading.style.display='none';
+    initSS('city',cities.map(c=>({value:c.en,label:c.he})));
+  }catch{
+    loading.style.display='none';
+    inp.placeholder='שגיאה בטעינת ערים';
+  }
+}
+
+async function fetchCities(country){
+  if(citcache[country])return citcache[country];
+  const r=await fetch(`${API}/geo/cities?country=${encodeURIComponent(country)}`,
+    {signal:AbortSignal.timeout(12000)});
+  if(!r.ok)throw new Error();
+  const data=await r.json();
+  if(data.error||!data.data)throw new Error(data.msg||'no cities');
+  citcache[country]=data.data;return data.data;
+}
+
+/* ── NEIGHBORHOODS ── */
+let selectedNbhs=[]; // [{he,en},...] — multi-select
+let allNbhOptions=[]; // all neighborhood options for current city (for fallback suggestions)
+let familyPref='no';
+
+function setFamilyPref(v){
+  familyPref=v;
+  document.getElementById('fam-yes').classList.toggle('active',v==='yes');
+  document.getElementById('fam-no').classList.toggle('active',v==='no');
+}
+
+async function onCityChange(cityEn){
+  selectedNbhs=[];
+  const card=document.getElementById('neighborhoods-card');
+  const loading=document.getElementById('nbh-loading');
+  const opts=document.getElementById('nbh-options');
+  opts.innerHTML='';card.style.display='none';loading.style.display='';
+  if(!cityEn)return;
+  try{
+    const r=await fetch(`${API}/geo/neighborhoods?city=${encodeURIComponent(cityEn)}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)return;
+    const data=await r.json();
+    if(!data.length)return;
+    allNbhOptions=data; // store for fallback suggestions
+    loading.style.display='none';
+    card.style.display='';
+    _scrollNext(card, 250); // scroll to neighborhoods after they load
+
+    // "כל העיר" toggle button (not a checkbox)
+    const anyBtn=document.createElement('button');
+    anyBtn.id='nbh-any';anyBtn.type='button';
+    anyBtn.className='nbh-option selected';
+    anyBtn.innerHTML='🌍 לא אכפת לי — כל העיר';
+    anyBtn.onclick=()=>{
+      selectedNbhs=[];
+      opts.querySelectorAll('.nbh-cb').forEach(cb=>{cb.checked=false;});
+      syncNbhStyle();
+    };
+    opts.appendChild(anyBtn);
+
+    data.forEach(({he,en})=>{
+      const lbl=document.createElement('label');
+      lbl.className='nbh-option';
+      lbl.innerHTML=`<input class="nbh-cb" type="checkbox" value="${en}" style="accent-color:#6366f1"> ${he}`;
+      lbl.querySelector('input').addEventListener('change',function(){
+        if(this.checked){
+          if(!selectedNbhs.find(x=>x.en===en))selectedNbhs.push({he,en});
+        }else{
+          selectedNbhs=selectedNbhs.filter(x=>x.en!==en);
+        }
+        syncNbhStyle();
+      });
+      opts.appendChild(lbl);
+    });
+  }catch{loading.style.display='none';}
+}
+
+let _nbhScrollTimer=null;
+function syncNbhStyle(){
+  const any=document.getElementById('nbh-any');
+  if(any)any.classList.toggle('selected',selectedNbhs.length===0);
+  document.querySelectorAll('.nbh-option:not(#nbh-any)').forEach(el=>{
+    const cb=el.querySelector('input');
+    if(cb)el.classList.toggle('selected',cb.checked);
+  });
+  // Debounce 2 sec — waits for multi-select to finish before scrolling to dates
+  if(_nbhScrollTimer) clearTimeout(_nbhScrollTimer);
+  _nbhScrollTimer=setTimeout(()=>{
+    const datesSection=document.getElementById('hotel-checkin')?.closest('.scard')
+      ||document.getElementById('hotel-checkin')?.parentElement;
+    if(datesSection) _scrollNext(datesSection, 0);
+    _nbhScrollTimer=null;
+  }, 2000);
+}
+
+/* ── SEARCH ── */
+function buildQuery(){
+  const city=ssState.city.value;
+  const country=ssState.country.value;
+  let base;
+  if(selectedNbhs.length===1){
+    base=`${selectedNbhs[0].en}, ${city}`;
+  }else if(selectedNbhs.length>1){
+    // multiple: list all areas + city
+    base=`${selectedNbhs.map(n=>n.en).join(' ')} ${city}`;
+  }else{
+    base=city?`${city}, ${country}`:country;
+  }
+  const family=familyPref==='yes'?' family friendly':'';
+  return base+family;
+}
+
+async function startSearch(){
+  if(!apiKey){alert('נא להזין SerpAPI Key');return}
+  if(mode==='attraction'){doAttractionSearch();return}
+  const query=buildQuery();
+  if(!query.trim()){alert('נא לבחור יעד');return}
+  if(mode==='hotel'){
+    const ci=document.getElementById('hotel-checkin').value;
+    const co=document.getElementById('hotel-checkout').value;
+    if(!ci||!co){alert('נא לבחור תאריכי שהייה');return}
+    const nights=Math.round((new Date(co)-new Date(ci))/86400000);
+    if(nights<=0){alert('תאריך הצ\'ק-אאוט חייב להיות אחרי תאריך הצ\'ק-אין');return}
+    if(new Date(ci)<new Date(today())){alert('תאריך הצ\'ק-אין לא יכול להיות בעבר');return}
+    // Confirm long stays > 7 nights before searching
+    if(nights>7){
+      const confirmed=await _confirmLongStay(nights);
+      if(!confirmed)return;
+    }
+    const adultsRaw=+document.getElementById('hotel-adults').value;
+    if(adultsRaw<1){alert('מספר המבוגרים חייב להיות לפחות 1');return}
+    const adults=adultsRaw;
+    const budget=+document.getElementById('hotel-budget').value||0;
+    window._failedNbhs=null;
+    window._broadenedFromNbh=null;
+    pending={query,ci,co,adults,budget};
+    // Track searched cities for cross-city attraction upsell
+    if(ssState.city.value){
+      const sc=JSON.parse(sessionStorage.getItem('searched_cities')||'[]');
+      if(!sc.find(c=>c.city===ssState.city.value))
+        sc.push({city:ssState.city.value,country:ssState.country.value});
+      sessionStorage.setItem('searched_cities',JSON.stringify(sc.slice(-5)));
+    }
+    closeDrawer();doHotelSearch();
+  }else{
+    doFlightSearch();
+  }
+}
+
+function _confirmLongStay(nights){
+  return new Promise(resolve=>{
+    // Remove any existing confirm modal
+    const existing=document.getElementById('long-stay-modal');
+    if(existing) existing.remove();
+
+    const over28=nights>28;
+    const modal=document.createElement('div');
+    modal.id='long-stay-modal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML=`
+      <div style="background:#fff;border-radius:20px;padding:28px 32px;width:min(440px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:right">
+        <div style="font-size:36px;margin-bottom:12px;text-align:center">🏨</div>
+        <div style="font-size:19px;font-weight:800;margin-bottom:8px">רגע — ${nights} לילות?</div>
+        <div style="font-size:14px;color:#475569;line-height:1.7;margin-bottom:20px">
+          ${over28
+            ? `רוב אתרי ההזמנה לא מציעים מחירים לשהייה ארוכה כל כך.<br>הסוכן יחפש מחירים ל-<b>7 לילות</b> ראשונים ויאפשר לך להשוות.<br><br><span style="color:#d97706">💡 לשהייה ארוכה, שקול לחפש דירות ב-Airbnb.</span>`
+            : `מחפש מלון ל-<b>${nights} לילות</b> — זה חיפוש לשהייה ממושכת.<br>ייתכן שמלון לא יהיה האופציה הטובה ביותר.`
+          }
+        </div>
+        <div style="display:flex;gap:10px;flex-direction:column">
+          <button id="lsc-yes" style="padding:13px;background:#2563eb;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+            כן, ${over28?'חפש מחירי השוואה ל-7 לילות':'חפש'} ←
+          </button>
+          <button id="lsc-no" style="padding:12px;background:#f1f5f9;border:none;border-radius:12px;font-family:inherit;font-size:14px;cursor:pointer">
+            לא, תן לי לשנות תאריכים
+          </button>
+          ${over28?`<a href="https://www.airbnb.com/s/${encodeURIComponent(query)}/homes" target="_blank" rel="noopener" style="display:block;text-align:center;padding:10px;background:#ff5a5f;color:#fff;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none">🏡 חפש ב-Airbnb (עדיף לשהייה ארוכה)</a>`:''}
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('lsc-yes').onclick=()=>{modal.remove();resolve(true)};
+    document.getElementById('lsc-no').onclick=()=>{modal.remove();resolve(false)};
+  });
+}
+
+/* ── ATTRACTION STATE ── */
+let attrTripPurpose='general';
+let attrLocMode='planning';
+let attrCats=new Set(['general']);
+let attrMultiCity=null; // {city,country} of 2nd city to add
+
+function setLocMode(m){
+  attrLocMode=m;
+  document.getElementById('loc-planning').classList.toggle('active',m==='planning');
+  document.getElementById('loc-here').classList.toggle('active',m==='here');
+  _scrollNext(document.getElementById('purpose-general')?.closest('.scard'), 200);
+}
+function setTripPurpose(p){
+  attrTripPurpose=p;
+  ['general','family','couple','solo'].forEach(id=>{
+    document.getElementById('purpose-'+id).classList.toggle('active',id===p);
+  });
+  _scrollNext(document.querySelector('[data-cat]')?.closest('.scard'), 200);
+}
+function toggleCatChip(btn,cat){
+  if(cat==='general'){
+    attrCats=new Set(['general']);
+    document.querySelectorAll('.cat-chip').forEach(b=>b.classList.toggle('active',b.dataset.cat==='general'));
+    return;
+  }
+  attrCats.delete('general');
+  document.querySelector('[data-cat="general"]')?.classList.remove('active');
+  if(attrCats.has(cat)){attrCats.delete(cat);btn.classList.remove('active');}
+  else{attrCats.add(cat);btn.classList.add('active');}
+  if(attrCats.size===0){attrCats.add('general');document.querySelector('[data-cat="general"]')?.classList.add('active');}
+  // Scroll to group section after category selected
+  _scrollNext(document.getElementById('attr-adults')?.closest('.scard'), 250);
+}
+function updateAttrChildren(){
+  const n=Math.min(+document.getElementById('attr-children').value||0,12);
+  const wrap=document.getElementById('attr-children-ages');
+  const cont=document.getElementById('attr-ages-inputs');
+  const pWrap=document.getElementById('attr-partial-wrap');
+  wrap.style.display=n>0?'':'none';
+  pWrap.style.display=(n+(+document.getElementById('attr-adults').value||2))>1?'':'none';
+  const existing=cont.querySelectorAll('input');
+  if(existing.length<n){
+    for(let i=existing.length;i<n;i++){
+      const inp=document.createElement('input');
+      inp.type='number';inp.min='0';inp.max='17';inp.value='5';
+      inp.style.cssText='width:100%;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;text-align:center';
+      inp.placeholder=`ילד ${i+1}`;
+      cont.appendChild(inp);
+    }
+  }else while(cont.querySelectorAll('input').length>n)cont.removeChild(cont.lastChild);
+  // Sync tickets default
+  const total=(+document.getElementById('attr-adults').value||2)+n;
+  const tk=document.getElementById('attr-tickets');
+  if(tk)tk.value=total;
+  // Group = last step → signal ready
+  if(n===0) _signalReady(); // no children = done immediately
+}
+function getAttrChildrenAges(){
+  return Array.from(document.querySelectorAll('#attr-ages-inputs input')).map(i=>+i.value);
+}
+
+/* ── MULTI-CITY UPSELL ── */
+function checkMultiCityContext(){
+  const cities=JSON.parse(sessionStorage.getItem('searched_cities')||'[]');
+  const currentCity=ssState.city.value;
+  const others=cities.filter(c=>c.city!==currentCity && c.city);
+  const banner=document.getElementById('multi-city-banner');
+  if(!banner)return;
+  if(others.length>0){
+    attrMultiCity=others[0];
+    document.getElementById('multi-city-name').textContent=others[0].city;
+    banner.style.display='';
+  } else {
+    banner.style.display='none';
+    attrMultiCity=null;
+  }
+}
+function addMultiCity(){
+  document.getElementById('multi-city-banner').style.display='none';
+  // attrMultiCity stays set — doAttractionSearch will include it
+}
+function dismissMultiCity(){
+  attrMultiCity=null;
+  document.getElementById('multi-city-banner').style.display='none';
+}
+
+/* ── ATTRACTION SEARCH ── */
+function doAttractionSearch(){
+  const city=ssState.city.value;
+  const country=ssState.country.value;
+  if(!city&&!country){alert('נא לבחור יעד');return}
+
+  const adults=+document.getElementById('attr-adults').value||2;
+  const childrenAges=getAttrChildrenAges();
+  const tickets=+(document.getElementById('attr-tickets')?.value)||adults+childrenAges.length;
+
+  // Build cities list
+  const cities=[{city:city||country, country:country}];
+  if(attrMultiCity && attrMultiCity.city !== city) cities.push(attrMultiCity);
+
+  const isExtreme = attrCats.has('extreme');
+  const body={
+    api_key:       apiKey,
+    cities,
+    trip_purpose:  attrTripPurpose,
+    children_ages: childrenAges,
+    categories:    [...attrCats],
+  };
+
+  closeDrawer();
+  showResultsPage('attraction');
+  // Init progress for each city
+  const pgGrid=document.getElementById('progress-grid');
+  pgGrid.innerHTML='';
+  cities.forEach(c=>{
+    const cell=document.createElement('div');
+    cell.className='pg-cell';cell.id='pg-'+hashStr(c.city);
+    cell.innerHTML=`<span class="pg-flag">🎡</span><div class="pg-info"><div class="pg-name">${c.city}</div><div id="pgs-${hashStr(c.city)}"><span class="spinner"></span></div></div>`;
+    pgGrid.appendChild(cell);
+  });
+
+  // Show search summary
+  const dbg=document.getElementById('search-debug');
+  if(dbg){
+    const catLabel=[...attrCats].map(c=>({'general':'הכל','food':'אוכל','culture':'תרבות','nature':'טבע','shopping':'קניות','nightlife':'לילה','adventure':'הרפתקאות'}[c]||c)).join(', ');
+    const purposeLabel={'general':'סיור כללי','family':'משפחה','couple':'זוגי','solo':'סולו'}[attrTripPurpose]||attrTripPurpose;
+    dbg.innerHTML=`
+      <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:10px;letter-spacing:2px;text-transform:uppercase">מה אני מחפש עכשיו</div>
+      <div style="font-size:clamp(24px,4vw,42px);font-weight:900;color:#fff;margin-bottom:16px;line-height:1.1">${cities.map(c=>c.city).join(' + ')}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">🏷️ ${catLabel}</div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">👥 ${adults} מבוגרים${childrenAges.length?' + '+childrenAges.length+' ילדים':''}</div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">✈️ ${purposeLabel}</div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">🎫 ${tickets} כרטיסים</div>
+      </div>`;
+    dbg.style.display='block';
+  }
+
+  let totalFound=0;
+  _bundleSelected=[];
+  const trayEl=document.getElementById('bundle-tray');
+  if(trayEl)trayEl.style.transform='translateY(100%)';
+  const wrap=document.getElementById('results-table-wrap');
+  wrap.innerHTML='';
+
+  streamPost('/search/attractions/stream',body,r=>{
+    if(r.status==='city_start'){
+      setPG(r.city,'מחפש...','found');
+    }
+    else if(r.status==='attraction'){
+      // Extreme filter: only show cards that matched an extreme activity keyword
+      if(isExtreme && !r.attraction.activity_label) return;
+      totalFound++;
+      renderAttractionCard(r.attraction, r.city, r.broadened, wrap, tickets, childrenAges);
+    }
+    else if(r.status==='city_done'){
+      setPG(r.city,`${r.count} מקומות`,'found');
+      if(r.broadened) addBroadenBanner(wrap, r.city, r.broadened);
+    }
+    else if(r.status==='no_results'||r.status==='error'){
+      setPG(r.city,r.error||'לא נמצא','error');
+    }
+    else if(r.status==='done'){
+      // Close any spinners still open
+      document.querySelectorAll('#progress-grid .pg-cell').forEach(cell=>{
+        const stat=cell.querySelector('[id^="pgs-"]');
+        if(stat&&stat.querySelector('.spinner')){
+          cell.className='pg-cell error';
+          stat.innerHTML='<span class="pg-err">לא נמצא</span>';
+        }
+      });
+      if(totalFound===0) showNoResultsAttractions();
+    }
+  });
+}
+
+function addBroadenBanner(wrap, city, broadened){
+  const div=document.createElement('div');
+  div.style.cssText='background:#dbeafe;border:1.5px solid #93c5fd;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#1e3a8a';
+  div.innerHTML=`🔍 לא נמצאו אטרקציות ספציפיות — מציג תוצאות מורחבות ב-<b>${broadened}</b>`;
+  wrap.insertBefore(div, wrap.firstChild);
+}
+
+/* ── TYPE TRANSLATION ── */
+const _TYPE_HE = {
+  'tourist attraction':'אטרקציה תיירותית','point of interest':'נקודת עניין',
+  'museum':'מוזיאון','art museum':'מוזיאון אמנות','history museum':'מוזיאון היסטורי',
+  'national museum':'מוזיאון לאומי','science museum':'מוזיאון מדע',
+  'historical place':'אתר היסטורי','historical landmark':'אתר לאומי',
+  'national park':'פארק לאומי','park':'פארק','public garden':'גן ציבורי','garden':'גן',
+  'theme park':'פארק שעשועים','amusement park':'פארק שעשועים','water park':'פארק מים',
+  'zoo':'גן חיות','aquarium':'אקווריום','safari':'ספארי','wildlife sanctuary':'שמורת טבע',
+  'beach':'חוף ים','bay':'מפרץ','island':'אי','archipelago':'ארכיפלג',
+  'temple':'מקדש','shrine':'מקדש','palace':'ארמון','castle':'טירה','fortress':'מצודה',
+  'church':'כנסייה','cathedral':'קתדרלה','mosque':'מסגד','synagogue':'בית כנסת',
+  'market':'שוק','night market':'שוק לילה','flea market':'שוק פשפשים',
+  'shopping mall':'קניון','shopping center':'מרכז קניות',
+  'restaurant':'מסעדה','food court':'מסעדות','street food':'אוכל רחוב',
+  'viewpoint':'נקודת תצפית','observation deck':'מרפסת תצפית','lookout':'תצפית',
+  'hiking area':'אזור טיולים','hiking':'הליכה בטבע','trekking':'טרקים',
+  'waterfall':'מפל מים','hot springs':'מעיינות חמים','cave':'מערה','volcano':'הר געש',
+  'boat tour':'סיור בסירה','cruise':'שייט','river cruise':'שייט בנהר',
+  'spa':'ספא','wellness':'בריאות ורווחה',
+  'art gallery':'גלריית אמנות','gallery':'גלריה',
+  'stadium':'אצטדיון','sports':'ספורט','golf course':'מגרש גולף',
+  'night club':'מועדון לילה','bar':'בר','entertainment':'בידור',
+  'cultural center':'מרכז תרבות','performing arts':'אומנויות הבמה',
+  'children museum':"מוזיאון לילדים",'family attraction':'אטרקציה משפחתית',
+};
+function translateType(rawType){
+  if(!rawType) return 'אטרקציה';
+  const lower = rawType.toLowerCase();
+  // Direct match
+  if(_TYPE_HE[lower]) return _TYPE_HE[lower];
+  // Partial match
+  for(const [en,he] of Object.entries(_TYPE_HE)){
+    if(lower.includes(en)) return he;
+  }
+  return rawType; // fallback: keep original if no translation
+}
+
+/* ── BUNDLE STATE ── */
+let _bundleSelected = []; // [{name, priceSymbol, priceNum, city}, ...]
+const _BUNDLE_DISCOUNT = {2:0.10, 3:0.20, 4:0.25, 5:0.30};
+const _PRICE_MID = {'$':12,'$$':30,'$$$':75,'$$$$':180};
+
+function toggleBundle(card, a){
+  const key = a.name;
+  const idx = _bundleSelected.findIndex(x=>x.name===key);
+  if(idx>=0){
+    _bundleSelected.splice(idx,1);
+    card.classList.remove('bundle-checked');
+    card.querySelector('.bundle-cb').checked=false;
+  } else {
+    _bundleSelected.push({name:a.name, priceSymbol:a.price_symbol, city:a.city||''});
+    card.classList.add('bundle-checked');
+    card.querySelector('.bundle-cb').checked=true;
+  }
+  updateBundleTray();
+}
+
+function updateBundleTray(){
+  let tray=document.getElementById('bundle-tray');
+  if(!tray){
+    tray=document.createElement('div');tray.id='bundle-tray';
+    tray.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#1e1b4b;color:#fff;padding:14px 20px;z-index:500;transform:translateY(100%);transition:transform .3s;box-shadow:0 -4px 20px rgba(0,0,0,.3)';
+    document.body.appendChild(tray);
+  }
+  const n=_bundleSelected.length;
+  if(n<2){tray.style.transform='translateY(100%)';return;}
+  tray.style.transform='translateY(0)';
+  const disc=_BUNDLE_DISCOUNT[Math.min(n,5)]||0.30;
+  const totalBase=_bundleSelected.reduce((s,x)=>s+(_PRICE_MID[x.priceSymbol]||0),0);
+  const saving=Math.round(totalBase*disc);
+  const afterDisc=totalBase-saving;
+  const names=_bundleSelected.map(x=>x.name).join(', ');
+  const viatorQ=encodeURIComponent(_bundleSelected.map(x=>x.name).join(' '));
+  const gyg=`https://www.getyourguide.com/s/?q=${viatorQ}`;
+  const viator=`https://www.viator.com/search/?text=${viatorQ}`;
+  tray.innerHTML=`
+    <div style="max-width:900px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:13px;font-weight:700;color:#a5b4fc">🎟️ ${n} אטרקציות נבחרו — חבילה אפשרית</div>
+        <div style="font-size:11px;opacity:.7;margin-top:3px">${_bundleSelected.map(x=>x.name).join(' · ')}</div>
+      </div>
+      ${totalBase>0?`<div style="text-align:center">
+        <div style="font-size:11px;opacity:.7">מחיר מוערך לאדם</div>
+        <div style="font-size:18px;font-weight:900">~$${afterDisc} <span style="text-decoration:line-through;font-size:13px;opacity:.6">$${totalBase}</span></div>
+        <div style="font-size:11px;color:#86efac">חיסכון של ~$${saving} (${Math.round(disc*100)}%)</div>
+      </div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="${viator}" target="_blank" rel="noopener" style="background:#ff6600;color:#fff;padding:9px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700">🎟️ חפש ב-Viator</a>
+        <a href="${gyg}" target="_blank" rel="noopener" style="background:#00b32c;color:#fff;padding:9px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700">🎡 GetYourGuide</a>
+        <button onclick="_bundleSelected=[];updateBundleTray();document.querySelectorAll('.bundle-cb').forEach(cb=>{cb.checked=false});document.querySelectorAll('.attr-card.bundle-checked').forEach(c=>c.classList.remove('bundle-checked'))" style="background:rgba(255,255,255,.15);color:#fff;border:none;padding:9px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit">✕ נקה</button>
+      </div>
+      <div style="font-size:10px;opacity:.5;width:100%">* הנחות מוערכות — יש לאמת מול האתרים. ${totalBase===0?'מחיר לא ידוע לאחד המקומות.':''}</div>
+    </div>`;
+}
+
+/* ── ACTIVITY STOCK PHOTOS (Unsplash, no API key needed) ── */
+const _ACTIVITY_PHOTOS = {
+  'זיפ':       'photo-1605208904433-4e0f13f93f6d', // zipline forest
+  'ליין':      'photo-1605208904433-4e0f13f93f6d',
+  'בנג':       'photo-1560258018-c7db7645254e',    // bungee jump
+  'צניח':      'photo-1501426026826-31c667bdf23d',  // skydiving
+  'פאראג':     'photo-1464037897185-b0082c2d0eaf',  // paragliding
+  'כדור פורח': 'photo-1502784444187-359ac186c5bb',  // hot air balloon
+  'מסוק':      'photo-1540962351926-a3260b41f2f7',  // helicopter
+  'סקובה':     'photo-1544551763-46a013bb70d5',    // scuba diving
+  'צלי':       'photo-1544551763-46a013bb70d5',
+  'סנורק':     'photo-1682687220208-22d7a2543e88',  // snorkeling
+  'טיפוס':     'photo-1522163182402-834f871fd851',  // rock climbing
+  'סלע':       'photo-1522163182402-834f871fd851',
+  'גלישה':     'photo-1502680390469-be75c86b636f',  // surfing
+  'ספארי':     'photo-1516426122078-c23e76319801',  // safari jeep
+  'אטב':       'photo-1558618666-fcd25c85cd64',    // atv
+  'שטח':       'photo-1558618666-fcd25c85cd64',
+  'קיאק':      'photo-1472745433479-4556f363c733',  // kayaking
+  'סירה':      'photo-1497436072909-60f360e1d4b1',  // boat
+  'שייט':      'photo-1499586424836-8881efc4f2c3',  // cruise sunset
+  'ראפט':      'photo-1558618047-f4e30912bf1a',    // rafting
+  'פיל':       'photo-1549991187-b8c5e5a7d7a3',    // elephant
+  'בישול':     'photo-1556909114-f6e7ad7d3136',    // cooking class
+  'שוק':       'photo-1555939594-58d7cb561ad1',    // night market
+  'מקדש':      'photo-1528360983277-13d401cdc186',  // temple
+  'ארמון':     'photo-1515816052601-210d5501d471',  // palace
+  'מוזיאון':   'photo-1530210124550-912dc1381cb8',  // museum interior
+  'חוף':       'photo-1507525428034-b723cf961d3e',  // beach
+  'ספא':       'photo-1544161515-4ab6ce6db874',    // spa
+  'עיסוי':     'photo-1544161515-4ab6ce6db874',
+  'מדיטציה':   'photo-1506126613408-eca07ce68773',  // yoga meditation
+};
+
+function _getActivityPhoto(typeHe){
+  const t = typeHe;
+  for(const [keyword, photoId] of Object.entries(_ACTIVITY_PHOTOS)){
+    if(t.includes(keyword)) return `https://images.unsplash.com/${photoId}?w=400&q=80`;
+  }
+  return null;
+}
+
+/* ── ACTIVITY ICON & GRADIENT for no-image fallback ── */
+function _activityVisual(typeHe){
+  const t=typeHe.toLowerCase();
+  if(t.includes('זיפ')||t.includes('ליין'))   return {icon:'🌉',grad:'linear-gradient(135deg,#1e3a5f,#0ea5e9)'};
+  if(t.includes('בנג'))                         return {icon:'🤸',grad:'linear-gradient(135deg,#7f1d1d,#ef4444)'};
+  if(t.includes('צניח')||t.includes('מטוס'))   return {icon:'🪂',grad:'linear-gradient(135deg,#312e81,#6366f1)'};
+  if(t.includes('צלי')||t.includes('סקובה'))   return {icon:'🤿',grad:'linear-gradient(135deg,#164e63,#06b6d4)'};
+  if(t.includes('סנורק'))                       return {icon:'🐠',grad:'linear-gradient(135deg,#065f46,#10b981)'};
+  if(t.includes('כדור פורח'))                   return {icon:'🎈',grad:'linear-gradient(135deg,#7c2d12,#f97316)'};
+  if(t.includes('מסוק'))                        return {icon:'🚁',grad:'linear-gradient(135deg,#1e3a5f,#3b82f6)'};
+  if(t.includes('טיפוס')||t.includes('סלע'))   return {icon:'🧗',grad:'linear-gradient(135deg,#422006,#a16207)'};
+  if(t.includes('ספא')||t.includes('עיסוי'))   return {icon:'💆',grad:'linear-gradient(135deg,#4a044e,#a21caf)'};
+  if(t.includes('בישול'))                       return {icon:'👨‍🍳',grad:'linear-gradient(135deg,#7c2d12,#ea580c)'};
+  if(t.includes('שוק'))                         return {icon:'🏮',grad:'linear-gradient(135deg,#422006,#d97706)'};
+  if(t.includes('מקדש')||t.includes('ארמון'))  return {icon:'🏛️',grad:'linear-gradient(135deg,#1e3a5f,#1d4ed8)'};
+  if(t.includes('פיל'))                         return {icon:'🐘',grad:'linear-gradient(135deg,#1c1917,#57534e)'};
+  if(t.includes('אטב')||t.includes('שטח'))     return {icon:'🏍️',grad:'linear-gradient(135deg,#14532d,#16a34a)'};
+  if(t.includes('קיאק')||t.includes('סירה'))   return {icon:'🚣',grad:'linear-gradient(135deg,#0c4a6e,#0284c7)'};
+  if(t.includes('גלישה'))                       return {icon:'🏄',grad:'linear-gradient(135deg,#0c4a6e,#06b6d4)'};
+  if(t.includes('גן חיות')||t.includes('ספארי')) return {icon:'🦁',grad:'linear-gradient(135deg,#422006,#ca8a04)'};
+  if(t.includes('חוף')||t.includes('ים'))       return {icon:'🏖️',grad:'linear-gradient(135deg,#0c4a6e,#0ea5e9)'};
+  return {icon:'🎡', grad:'linear-gradient(135deg,#1e1b4b,#4f46e5)'};
+}
+
+/* ── HOTSPOT TOOLTIP ── */
+let _tipEl = null;
+function _showTip(anchor, html){
+  if(!_tipEl){
+    _tipEl=document.createElement('div');
+    _tipEl.style.cssText='position:fixed;z-index:2000;background:#1e1b4b;color:#fff;border-radius:12px;padding:14px 16px;max-width:280px;font-size:13px;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:none;transition:opacity .15s';
+    document.body.appendChild(_tipEl);
+  }
+  _tipEl.innerHTML=html;
+  _tipEl.style.opacity='1';
+  const r=anchor.getBoundingClientRect();
+  let top=r.bottom+8; let left=r.right-280;
+  if(top+200>window.innerHeight) top=r.top-210;
+  if(left<8) left=8;
+  _tipEl.style.top=top+'px'; _tipEl.style.left=left+'px';
+}
+function _hideTip(){ if(_tipEl) _tipEl.style.opacity='0'; }
+
+/* ── RENDER ATTRACTION CARD ── */
+function renderAttractionCard(a, city, broadened, wrap, tickets, childrenAges){
+  const ageWarn = childrenAges.length>0 &&
+    (a.age_label==='18+' || (a.age_label.includes('+') && Math.min(...childrenAges) < parseInt(a.age_label)));
+
+  // Grid container per city
+  let grid=document.getElementById('attr-grid-'+hashStr(city));
+  if(!grid){
+    const section=document.createElement('div');
+    section.innerHTML=`<div style="font-size:15px;font-weight:800;color:var(--text);margin:20px 0 12px;display:flex;align-items:center;gap:8px">📍 ${city}</div><div class="attr-grid" id="attr-grid-${hashStr(city)}"></div>`;
+    wrap.appendChild(section);
+    grid=document.getElementById('attr-grid-'+hashStr(city));
+  }
+
+  a.city = city;
+  const typeHe    = a.activity_label || translateType(a.type);
+  const visual    = _activityVisual(typeHe);
+  const midPrice  = a.price_mid || _PRICE_MID[a.price_symbol] || 0;
+  const total     = midPrice * tickets;
+  const isFree    = midPrice === 0;
+  const hasActivity = !!a.activity_label;
+
+  // Klook is often cheaper for Asia; Viator for the rest
+  const isAsiaCity = ['Thailand','Japan','Indonesia','Vietnam','Singapore','Malaysia',
+    'Philippines','South Korea','Cambodia','Taiwan','Nepal','Sri Lanka','India',
+    'Bali','Bangkok','Phuket','Tokyo','Kyoto','Seoul','Krabi','Koh Samui'].some(c=>
+      city.toLowerCase().includes(c.toLowerCase()) || ssState.country.value.includes(c));
+  const klookUrl  = `https://www.klook.com/en-US/search/?query=${encodeURIComponent(a.name+' '+city)}`;
+  const viatorUrl = `https://www.viator.com/search/${encodeURIComponent(city)}?text=${encodeURIComponent(a.name)}`;
+  const bookUrl   = hasActivity
+    ? (isAsiaCity ? klookUrl : viatorUrl)
+    : (a.website || a.maps_link || `https://www.google.com/maps/search/${encodeURIComponent(a.name+' '+city)}`);
+  const bookLabel = hasActivity
+    ? (isAsiaCity ? '🟡 קנה כרטיס ב-Klook (זול יותר)' : '🎟️ קנה כרטיס ב-Viator')
+    : (a.website ? '🌐 לאתר הרשמי' : '🗺️ ראה ב-Google Maps');
+  const bookStyle = hasActivity
+    ? (isAsiaCity ? 'background:#ff5722;color:#fff' : 'background:#ff6600;color:#fff')
+    : 'background:#1d4ed8;color:#fff';
+  // Secondary link: Viator as alternative for Asia
+  const altUrl   = isAsiaCity && hasActivity ? viatorUrl : null;
+  const altLabel = isAsiaCity && hasActivity ? 'גם ב-Viator ↗' : null;
+
+  // Tooltip content for bundle pill
+  const tipLines = [];
+  if(a.description) tipLines.push(`📝 ${a.description.slice(0,120)}${a.description.length>120?'...':''}`);
+  tipLines.push(`${a.age_icon} מינימום גיל: <b>${a.age_label}</b> &nbsp; ${a.dur_icon} <b>${a.duration}</b>`);
+  if(midPrice>0) tipLines.push(`💰 מחיר משוערך: <b>~$${midPrice}/אדם</b>`);
+  if(a.nearby&&a.nearby.length) tipLines.push(`🔗 קרוב לאטרקציות: <b>${a.nearby.join(', ')}</b>`);
+  tipLines.push('<span style="font-size:10px;opacity:.6">* בחר + חבילה לצרף לרכישה משותפת</span>');
+  const tipHtml = tipLines.join('<br>');
+
+  const card = document.createElement('div');
+  card.className = 'attr-card';
+  card.style.cssText = 'display:flex;flex-direction:column';
+
+  // Image: 1st choice = SerpAPI thumbnail, 2nd = activity stock photo, 3rd = gradient
+  const stockPhoto = _getActivityPhoto(typeHe);
+  const bestImg = a.thumbnail || stockPhoto;
+  const gradFallback = `<div class="attr-img-placeholder" style="background:${visual.grad};flex-direction:column;gap:0;padding:18px 16px">
+       <span style="font-size:48px;line-height:1;margin-bottom:14px">${visual.icon}</span>
+       <span style="color:#fff;font-size:15px;font-weight:900;text-align:center;line-height:1.5;word-break:break-word;white-space:normal;text-shadow:0 2px 4px rgba(0,0,0,.4);padding:0 8px">${typeHe}</span>
+     </div>`;
+  const imgSection = bestImg
+    ? `<div style="position:relative;overflow:hidden">
+         <img class="attr-img" src="${bestImg}" alt="${a.name}"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+         <div style="display:none">${gradFallback}</div>
+         ${stockPhoto&&!a.thumbnail?`<div style="position:absolute;bottom:6px;left:8px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 7px;border-radius:10px">📷 תמונה לדוגמה</div>`:''}
+       </div>`
+    : gradFallback;
+
+  card.innerHTML = `
+    ${imgSection}
+
+    <div class="attr-body" style="flex:1;display:flex;flex-direction:column">
+
+      <!-- Top row: Activity type BIG + bundle pill inline -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+        <div style="font-size:19px;font-weight:900;color:#3730a3;line-height:1.3;word-break:break-word;flex:1">${esc(typeHe)}</div>
+        <div class="bundle-pill" style="flex-shrink:0;display:flex;align-items:center;gap:5px;background:#ede9fe;border-radius:20px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:#3730a3;border:1.5px solid #c4b5fd;white-space:nowrap">
+          <input type="checkbox" class="bundle-cb" style="accent-color:#6366f1;width:13px;height:13px">
+          <span style="display:flex;align-items:center;gap:3px">+ חבילה <span style="color:#6366f1">ℹ</span></span>
+        </div>
+      </div>
+
+      <!-- Name (brand) — subtitle -->
+      <div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:8px">${esc(a.name)}</div>
+
+      <!-- Rating -->
+      ${a.rating ? `<div style="font-size:13px;color:#92400e;margin-bottom:8px">★ <b>${esc(a.rating)}</b>${a.reviews ? ` · ${Number(a.reviews).toLocaleString()} ביקורות` : ''}</div>` : ''}
+
+      <!-- Badges -->
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
+        <span class="attr-badge age">${a.age_icon} ${a.age_label}</span>
+        <span class="attr-badge dur">${a.dur_icon} ${a.duration}</span>
+        ${ageWarn ? '<span class="attr-badge" style="background:#fef3c7;color:#92400e">⚠️ בדוק גיל</span>' : ''}
+      </div>
+
+      <!-- PRICE HERO -->
+      <div style="background:${isFree?'#f0fdf4':'#faf5ff'};border-radius:12px;padding:12px 14px;margin-bottom:14px;border:1.5px solid ${isFree?'#86efac':'#c4b5fd'}">
+        ${isFree
+          ? `<div style="font-size:20px;font-weight:900;color:#166534">✅ כניסה חינם</div>`
+          : `<div style="font-size:11px;color:#6b21a8;font-weight:600;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px">מחיר משוערך</div>
+             <div style="font-size:28px;font-weight:900;color:#3b0764;line-height:1">~$${midPrice} <span style="font-size:14px;font-weight:400;color:#7c3aed">לאדם</span></div>
+             ${tickets>1 ? `<div style="font-size:15px;font-weight:700;color:#6d28d9;margin-top:4px">~$${total} ל-${tickets} אנשים</div>` : ''}
+             <div style="font-size:10px;color:#a78bfa;margin-top:4px">* המחיר עשוי להשתנות</div>`
+        }
+      </div>
+
+      <!-- Primary CTA -->
+      <a href="${bookUrl}" target="_blank" rel="noopener"
+         style="display:block;text-align:center;${bookStyle};border-radius:12px;padding:13px;font-size:15px;font-weight:800;text-decoration:none;margin-top:auto;transition:opacity .15s"
+         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        ${bookLabel}${midPrice>0&&hasActivity?' →':''}
+      </a>
+      <!-- Secondary link for Asia: also show Viator -->
+      ${altUrl?`<a href="${altUrl}" target="_blank" rel="noopener"
+         style="display:block;text-align:center;background:#fff3e0;color:#e65100;border-radius:10px;padding:8px;font-size:12px;font-weight:700;text-decoration:none;margin-top:6px;transition:opacity .15s"
+         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">${altLabel}</a>`
+      :''}
+    </div>`;
+
+  // Bundle checkbox
+  card.querySelector('.bundle-cb').addEventListener('change', () => toggleBundle(card, a));
+
+  // Hotspot tooltip on bundle pill
+  const pill = card.querySelector('.bundle-pill');
+  pill.addEventListener('mouseenter', e => _showTip(pill, tipHtml));
+  pill.addEventListener('mouseleave', _hideTip);
+
+  grid.appendChild(card);
+}
+
+function showNoResultsAttractions(){
+  const card=document.getElementById('best-deal-card');
+  card.style.display='block';
+  card.style.background='linear-gradient(135deg,#7f1d1d,#dc2626)';
+  const btnS='background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;text-align:right;margin-top:8px';
+  card.innerHTML=`
+    <div class="best-label">😕 לא נמצאו אטרקציות</div>
+    <div class="best-name" style="font-size:18px">לא נמצאו תוצאות ביעד זה</div>
+    <div style="font-size:13px;opacity:.85;margin-top:8px">ייתכן שהיעד קטן מדי או שאין נתונים זמינים</div>
+    <button onclick="openDrawer('attraction')" style="${btnS}">✏️ שנה יעד או פרמטרים</button>`;
+}
+
+/* ── HOTEL SEARCH ── */
+function doHotelSearch(){
+  if(apiKey==='DEMO'){demoHotelSearch();return}
+  const p=pending;
+  const geoList=activeStrategy?activeStrategy.geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'];
+  showResultsPage('hotel');initPG(geoList);
+  const body={api_key:apiKey,query:p.query,check_in:p.ci,check_out:p.co,
+    adults:p.adults,children_ages:getChildrenAges(),min_stars:stars,max_budget:p.budget,countries:geoList};
+  // Search summary card
+  const dbg=document.getElementById('search-debug');
+  if(dbg){
+    const nights=_nightCount(p.ci,p.co);
+    const starsLbl=stars>0?`${'★'.repeat(stars)} ומעלה`:'כל הכוכבים';
+    const budgetLbl=p.budget>0?`עד $${p.budget} ללילה`:'ללא הגבלת תקציב';
+    const guestAges=getChildrenAges();
+    const guestLbl=`${p.adults} מבוגרים${guestAges.length?` + ${guestAges.length} ילדים`:''}`;
+    dbg.innerHTML=`
+      <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:10px;letter-spacing:2px;text-transform:uppercase">מה אני מחפש עכשיו</div>
+      <div style="font-size:clamp(24px,4vw,42px);font-weight:900;color:#fff;margin-bottom:16px;line-height:1.1">${p.query}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">📅 ${p.ci} → ${p.co} <span style="font-weight:400;opacity:.7">(${nights} לילות)</span></div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">👤 ${guestLbl}</div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">⭐ ${starsLbl}</div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">💰 ${budgetLbl}</div>
+        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">🌍 חיפוש גיאו-מחיר: ${geoList.map(c=>(c.match(/[\u{1F1E0}-\u{1F1FF}]{2}/u)||[''])[0]+' '+c.replace(/[\u{1F1E0}-\u{1F1FF}]{2}/gu,'').trim()).join(' + ')}</div>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:rgba(255,255,255,.45);line-height:1.6">
+        🔍 נתונים מ-<b style="color:rgba(255,255,255,.6)">Google Hotels API</b> בזמן אמת · לחיצה על הכפתור פותחת את עמוד המלון ב-Google Hotels עם כל הפלטפורמות ומחיר עדכני לתאריכים שלך · המחיר המוצג כאן הוא המחיר הנמוך ביותר שנמצא בעת החיפוש — יכול להשתנות
+      </div>`;
+    dbg.style.display='block';
+  }
+  let foundHotels=0;
+  streamPost('/search/hotels/stream',body,r=>{
+    if(r.status==='long_stay_note'){
+      // Add a banner explaining the long-stay limitation
+      const dbgEl=document.getElementById('search-debug');
+      if(dbgEl){
+        const note=document.createElement('div');
+        note.style.cssText='margin-top:12px;background:rgba(251,191,36,.18);border:1.5px solid rgba(251,191,36,.4);border-radius:10px;padding:10px 14px;font-size:13px;color:#fbbf24;line-height:1.5';
+        note.innerHTML=`⚠️ <b>שהייה ארוכה (${r.actual_nights} לילות)</b> — Google Hotels API לא תומך בחיפוש מעל 28 לילות. מחפש מחירים ל-7 לילות ראשונים ומשליך לטווח המלא.`;
+        dbgEl.appendChild(note);
+      }
+    }
+    else if(r.status==='progress'){setPG(r.country,r.message,'found')}
+    else if(r.status==='hotels_update'){
+      const sorted=r.hotels.slice().sort((a,b)=>a.price_num-b.price_num);
+      foundHotels=sorted.length;
+      renderHotels(sorted,body.max_budget,r.actual_nights);
+    }
+    else if(r.status==='suggest_near_budget'){
+      foundHotels=r.hotels.length;
+      showNearBudgetPrompt(r.hotels,body.max_budget);
+    }
+    else if(r.status==='done'){
+      // Close any cells still showing spinner (countries that returned no data at all)
+      document.querySelectorAll('#progress-grid .pg-cell').forEach(cell=>{
+        const stat=cell.querySelector('[id^="pgs-"]');
+        if(stat&&stat.querySelector('.spinner')){
+          cell.className='pg-cell error';
+          stat.innerHTML='<span class="pg-err">לא נמצא</span>';
+        }
+      });
+      if(foundHotels===0)showNoResults(body.min_stars,body.max_budget);
+    }
+    else if(r.status==='error'||r.status==='no_results')setPG(r.country,r.error||r.message||'לא נמצא','error');
+  });
+}
+
+/* ── FLIGHT SEARCH ── */
+function doFlightSearch(){
+  const origin=document.getElementById('flight-origin').value.trim().toUpperCase();
+  const dest=document.getElementById('flight-dest').value.trim().toUpperCase();
+  const dep=document.getElementById('flight-depart').value;
+  const ret=document.getElementById('flight-return').value;
+  const adults=+document.getElementById('flight-adults').value||1;
+  const geoList=activeStrategy?activeStrategy.geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'];
+  if(!origin||!dest){alert('נא להזין קודי שדה תעופה');return}
+  if(!dep){alert('נא לבחור תאריך יציאה');return}
+  closeDrawer();showResultsPage('flight');initPG(geoList);
+  const body={api_key:apiKey,origin,destination:dest,departure_date:dep,return_date:ret,adults,countries:geoList};
+  const rows=[];
+  streamPost('/search/flights/stream',body,r=>{
+    if(r.status==='found'){setPG(r.country,r.price,'found');rows.push(r);rows.sort((a,b)=>a.price_num-b.price_num);renderFlights(rows)}
+    else if(r.status==='best')showBest(r.best,'flight');
+    else if(r.status==='error'||r.status==='no_results')setPG(r.country,r.error||r.message||'אין טיסות','error');
+  });
+}
+
+/* ── STREAM ── */
+async function streamPost(ep,body,onResult){
+  try{
+    const resp=await fetch(`${API}${ep}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const reader=resp.body.getReader();const dec=new TextDecoder();let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){if(line.startsWith('data: ')){try{onResult(JSON.parse(line.slice(6)))}catch{}}}
+    }
+  }catch(e){console.error('stream',e)}
+}
+
+/* ── RESULTS PAGE ── */
+function showResultsPage(m){
+  document.getElementById('landing').classList.add('hidden');
+  const rp=document.getElementById('results-page');
+  rp.classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'instant'}); // always start from top
+  const t={hotel:'🏨 תוצאות מלון',flight:'✈️ תוצאות טיסה',attraction:'🎡 אטרקציות'};
+  document.getElementById('results-title').textContent=t[m]||'תוצאות';
+  const bd=document.getElementById('best-deal-card');bd.innerHTML='';bd.style.display='none';
+  document.getElementById('progress-section').style.display='';
+  document.getElementById('results-table-section').style.display='';
+  document.getElementById('results-table-wrap').innerHTML='';
+}
+function backToLanding(){
+  document.getElementById('results-page').classList.add('hidden');
+  document.getElementById('landing').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+/* ── PROGRESS ── */
+function initPG(countries){
+  const grid=document.getElementById('progress-grid');grid.innerHTML='';
+  countries.forEach(name=>{
+    const fl=(name.match(/[\u{1F1E0}-\u{1F1FF}]{2}/u)||['🌍'])[0];
+    const lbl=name.replace(/[\u{1F1E0}-\u{1F1FF}]{2}/gu,'').trim();
+    const cell=document.createElement('div');
+    cell.className='pg-cell';cell.id='pg-'+hashStr(name);
+    cell.innerHTML=`<span class="pg-flag">${fl}</span><div class="pg-info"><div class="pg-name">${lbl}</div><div id="pgs-${hashStr(name)}"><span class="spinner"></span></div></div>`;
+    grid.appendChild(cell);
+  });
+}
+function setPG(country,msg,status){
+  const h=hashStr(country);
+  const cell=document.getElementById('pg-'+h);const stat=document.getElementById('pgs-'+h);
+  if(!cell||!stat)return;
+  cell.className='pg-cell '+(status==='found'?'found':'error');
+  stat.innerHTML=status==='found'?`<span class="pg-price">${msg}</span>`:`<span class="pg-err" title="${msg}">${msg}</span>`;
+}
+
+/* ── TABLES ── */
+function flg(n){return(n.match(/[\u{1F1E0}-\u{1F1FF}]{2}/u)||[''])[0]}
+function fmtDur(m){return m?`${Math.floor(m/60)}ש' ${m%60}ד'`:'—'}
+
+function hotelLink(r){
+  if(!pending) return {url:'#', label:'הזמן ↗', note:''};
+  const ages=getChildrenAges().map(Number);
+  const effAdults=(pending.adults||2)+ages.filter(a=>a>=16).length;
+  const effChildren=ages.filter(a=>a<16);
+
+  // Build Google Hotels search URL with dates + guests embedded
+  // Format: YYYYMMDD for dates
+  const ciCompact=pending.ci.replace(/-/g,'');
+  const coCompact=pending.co.replace(/-/g,'');
+  const query=encodeURIComponent(r.hotel_name+' '+( ssState.city.label||ssState.country.label||''));
+  const ghUrl=`https://www.google.com/travel/hotels?q=${query}&dates=${ciCompact},${coCompact}&adults=${effAdults}${effChildren.map(a=>`&children=${a}`).join('')}&hl=en&gl=us&curr=USD`;
+
+  return {
+    url:   ghUrl,
+    label: '📊 השווה מחירים ↗',
+    note:  `Google Hotels · ${pending.ci} → ${pending.co} · ${effAdults} מבוגרים${effChildren.length?' + '+effChildren.length+' ילדים':''}`,
+  };
+}
+
+function renderHotels(rows, maxBudget, actualNights){
+  const cheapest=rows[0]?.price_num;
+  const searchNights=rows[0]?.nights||1;
+  const nights=actualNights||searchNights;
+  const nightsNote=actualNights&&actualNights!==searchNights
+    ?` <span style="font-size:11px;font-weight:400;opacity:.7">(מחיר ל-${searchNights} לילות — חיפוש לדוגמה)</span>`
+    :'';
+  const broadenBanner=window._broadenedFromNbh
+    ?`<div style="background:#dbeafe;border:1.5px solid #93c5fd;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#1e3a8a">
+        🔍 לא נמצאו מלונות ב-<b>${window._broadenedFromNbh}</b> — מציג תוצאות מכל ${ssState.city.label||'העיר'}
+      </div>`
+    :'';
+  window._broadenedFromNbh=null;
+  document.getElementById('results-table-wrap').innerHTML=`
+    ${broadenBanner}<table>
+    <thead><tr><th>#</th><th>מלון</th><th>כוכבים</th><th>דירוג</th><th>ללילה</th><th>סה"כ (${searchNights} לילות)${nightsNote}</th><th>הזמן</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>
+      <td>${i+1}</td>
+      <td>
+        ${r.thumbnail?`<img src="${esc(r.thumbnail)}" style="width:38px;height:30px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-left:8px" onerror="this.remove()">` :''}
+        <b>${esc(r.hotel_name)}</b>
+        ${r.price_num===cheapest&&rows.length>1?' <span class="td-best">⭐ הכי זול</span>':''}
+      </td>
+      <td title="${esc(r.hotel_class||'')}">${r.stars?'★'.repeat(Math.min(r.stars,5)):r.hotel_class?esc(r.hotel_class).replace(/-star hotel/i,'★'):'—'}</td>
+      <td>${esc(r.rating||'—')}</td>
+      <td class="td-price">${esc(r.price_per_night)}</td>
+      <td>${r.total_price}</td>
+      <td>${(h=>`<div><a href="${h.url}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;font-size:13px;font-weight:600">${h.label}</a>${h.note?`<div style="font-size:10px;color:#94a3b8;margin-top:2px">${h.note}</div>`:''}</div>`)(hotelLink(r))}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function renderFlights(rows){
+  const cheapest=rows[0]?.price_num;
+  document.getElementById('results-table-wrap').innerHTML=`<table>
+    <thead><tr><th>#</th><th></th><th>חברת תעופה</th><th>עצירות</th><th>משך</th><th>מחיר</th><th>קישור</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>
+      <td>${i+1}</td>
+      <td style="font-size:20px">${flg(r.country)}</td>
+      <td><b>${esc(r.airline)}</b>${r.price_num===cheapest&&rows.length>1?' <span class="td-best">⭐ הכי זול</span>':''}</td>
+      <td>${esc(r.stops_label)}</td>
+      <td>${fmtDur(r.duration)}</td>
+      <td class="td-price">${esc(r.price)}</td>
+      <td><a href="${esc(r.link)}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;font-size:12px">פתח ↗</a></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+/* ── SEARCH ALT NEIGHBORHOODS (from no-results card) ── */
+function searchAltNbhs(){
+  const checked=Array.from(document.querySelectorAll('#alt-nbh-list input[name="alt-nbh"]:checked'));
+  if(!checked.length){
+    // flash the button area
+    const btn=document.querySelector('#alt-nbh-list')?.nextElementSibling;
+    if(btn){btn.style.background='#dc2626';setTimeout(()=>btn.style.background='#6366f1',600);}
+    return;
+  }
+  selectedNbhs=checked.map(cb=>({en:cb.value,he:cb.dataset.he}));
+  pending.query=buildQuery();
+  doHotelSearch();
+}
+
+/* ── CHANGE CITY SEARCH ── */
+function changeCitySearch(){
+  // Open drawer and focus the city selector
+  openDrawer('hotel');
+  setTimeout(()=>{
+    const cityInp=document.getElementById('ss-city-inp');
+    if(cityInp){cityInp.focus();cityInp.select();}
+  },350);
+}
+
+/* ── SEARCH WITHOUT NEIGHBORHOOD ── */
+function searchWithoutNbh(){
+  window._failedNbhs=null;
+  selectedNbhs=[];
+  document.querySelectorAll('.nbh-cb').forEach(cb=>cb.checked=false);
+  const any=document.getElementById('nbh-any');
+  if(any)any.classList.add('selected');
+  document.querySelectorAll('.nbh-option:not(#nbh-any)').forEach(el=>el.classList.remove('selected'));
+  doHotelSearch();
+}
+
+/* ── NEAR BUDGET PROMPT ── */
+function showNearBudgetPrompt(rows, budget){
+  const minP=rows[0]?.price_num, maxP=rows[rows.length-1]?.price_num;
+  const card=document.getElementById('best-deal-card');
+  card.style.display='block';
+  card.style.background='linear-gradient(135deg,#1c1c3a,#3730a3)';
+  card.innerHTML=`
+    <div class="best-label">💰 לא נמצאו מלונות בתקציב</div>
+    <div class="best-name" style="font-size:19px">לא מצאנו מלונות עד $${budget}/לילה</div>
+    <div class="best-country" style="margin-top:8px;opacity:.85;font-size:14px">
+      מצאנו ${rows.length} מלונות קרובים לתקציב — בין $${minP} ל-$${maxP} ללילה (עד 10% מעל)
+    </div>
+    <button onclick="revealNearBudget()" style="
+      margin-top:18px;background:#6366f1;color:#fff;border:none;border-radius:10px;
+      padding:12px 24px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+      box-shadow:0 4px 12px rgba(99,102,241,.4);transition:background .15s
+    " onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
+      כן, ארצה לראות מה נמצא באזור התקציב שלי
+    </button>`;
+  // Store for reveal
+  window._nearBudgetRows=rows;
+  window._nearBudgetBudget=budget;
+}
+
+function revealNearBudget(){
+  document.getElementById('best-deal-card').style.display='none';
+  renderNearBudgetHotels(window._nearBudgetRows, window._nearBudgetBudget);
+}
+
+/* ── NEAR BUDGET HOTELS ── */
+function renderNearBudgetHotels(rows, budget){
+  const nights=rows[0]?.nights||1;
+  const minP=rows[0]?.price_num, maxP=rows[rows.length-1]?.price_num;
+  const overPct=Math.round((maxP/budget-1)*100);
+  document.getElementById('results-table-wrap').innerHTML=`
+    <div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#78350f;line-height:1.6">
+      💡 <b>לא נמצאו מלונות בתוך $${budget}/לילה</b> — להלן ${rows.length} מלונות הקרובים ביותר לתקציב (<b>$${minP}–$${maxP}/לילה</b>, עד ${overPct}% מעל):
+    </div>
+    <table>
+    <thead><tr><th>#</th><th>מלון</th><th>כוכבים</th><th>דירוג</th><th>ללילה</th><th>סה"כ (${nights} לילות)</th><th>הזמן</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>
+      <td>${i+1}</td>
+      <td>
+        ${r.thumbnail?`<img src="${r.thumbnail}" style="width:38px;height:30px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-left:8px" onerror="this.remove()">` :''}
+        <b>${r.hotel_name}</b>
+        ${i===0?' <span class="td-best">💡 הכי קרוב לתקציב</span>':''}
+      </td>
+      <td title="${r.hotel_class||''}">${r.stars?'★'.repeat(Math.min(r.stars,5)):r.hotel_class?r.hotel_class.replace(/-star hotel/i,'★'):'—'}</td>
+      <td>${r.rating||'—'}</td>
+      <td class="td-price" style="color:#b45309">${r.price_per_night}</td>
+      <td>${r.total_price}</td>
+      <td>${(h=>`<a href="${h.url}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;font-size:13px;font-weight:600">${h.label}</a>`)(hotelLink(r))}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+/* ── NO RESULTS ── */
+function showNoResults(minStars,maxBudget){
+  const card=document.getElementById('best-deal-card');
+  card.style.display='block';
+
+  // CASE 1: Neighborhoods selected → auto-search whole city (no wasted choices)
+  if(selectedNbhs.length>0){
+    const failedAreas=selectedNbhs.map(n=>n.en).join(' / ');
+    // Show brief loading state
+    card.style.background='linear-gradient(135deg,#1e3a5f,#2563eb)';
+    card.innerHTML=`
+      <div class="best-label">📍 לא נמצא ב-${failedAreas}</div>
+      <div class="best-name" style="font-size:17px">מחפש בשאר ${ssState.city.label||'העיר'}...</div>
+      <div style="margin-top:16px;display:flex;justify-content:center"><span class="spinner" style="width:28px;height:28px;border-width:3px"></span></div>`;
+    // Silently broaden to whole city
+    selectedNbhs=[];
+    pending.query=buildQuery();
+    window._broadenedFromNbh=failedAreas; // remember for results banner
+    setTimeout(()=>doHotelSearch(),300);
+    return;
+  }
+  window._failedNbhs=null;
+
+  const actionBtn=`<button onclick="openDrawer('hotel')" style="margin-top:16px;background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">✏️ שנה פרמטרים וחפש מחדש</button>`;
+
+  // CASE 2: Stars filter is likely the blocker
+  if(minStars>0 && maxBudget===0){
+    card.style.background='linear-gradient(135deg,#3b1f00,#b45309)';
+    card.innerHTML=`
+      <div class="best-label">⭐ לא נמצאו מלונות ${minStars}★+</div>
+      <div class="best-name" style="font-size:18px">נסה להוריד את מספר הכוכבים</div>
+      <div style="margin-top:12px;font-size:14px;opacity:.9">
+        ביעד זה ייתכן שאין מלונות ${minStars}★ זמינים בתאריכים שבחרת.
+        ${minStars>3?`<br>מלונות ${minStars-1}★ עשויים להיות איכותיים מאוד באזורים אלו.`:''}
+      </div>
+      ${actionBtn}`;
+    return;
+  }
+
+  // CASE 3: Combined filters or general no results
+  card.style.background='linear-gradient(135deg,#7f1d1d,#dc2626)';
+  const tips=[];
+  if(maxBudget>0) tips.push(`💰 הגדל את התקציב (כרגע $${maxBudget}/לילה) — לא נמצאו מלונות גם בטווח של 10% מעל`);
+  if(minStars>0)  tips.push(`⭐ הורד את מספר הכוכבים המינימלי (כרגע ${minStars}★)`);
+  tips.push('📅 נסה תאריכים גמישים יותר');
+  const btnS='background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;text-align:right';
+  card.innerHTML=`
+    <div class="best-label">😕 לא נמצאו תוצאות</div>
+    <div class="best-name" style="font-size:20px">לא נמצא מלון שתואם את כל הדרישות</div>
+    <div class="best-country">נסה לשנות אחת מהאפשרויות:</div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;font-size:14px;opacity:.95">
+      ${tips.map(t=>`<div>${t}</div>`).join('')}
+    </div>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="openDrawer('hotel')" style="${btnS}">✏️ שנה פרמטרים (תקציב / כוכבים / תאריכים)</button>
+      <button onclick="changeCitySearch()" style="${btnS}">🏙️ שנה עיר יעד וחפש מחדש</button>
+    </div>`;
+}
+
+/* ── BEST DEAL ── */
+function showBest(b,type){
+  const card=document.getElementById('best-deal-card');
+  card.style.display='block';
+  if(type==='hotel'){
+    card.innerHTML=`
+      <div class="best-label">🏆 הכי זול שמצאנו</div>
+      <div class="best-name">${b.hotel_name}</div>
+      <div class="best-country">${b.country}</div>
+      <div class="best-stats">
+        <div class="best-stat"><div class="best-stat-val">${b.price_per_night}</div><div class="best-stat-lbl">ללילה</div></div>
+        <div class="best-stat"><div class="best-stat-val">${b.total_price}</div><div class="best-stat-lbl">סה"כ (${b.nights} לילות)</div></div>
+        ${b.rating?`<div class="best-stat"><div class="best-stat-val">${b.rating}</div><div class="best-stat-lbl">דירוג</div></div>`:''}
+      </div>
+      ${b.link?`<a class="best-link" href="${b.link}" target="_blank" rel="noopener">פתח ב-Google Hotels ↗</a>`:''}`;
+  }else{
+    card.innerHTML=`
+      <div class="best-label">🏆 הכי זול שמצאנו</div>
+      <div class="best-name">${b.airline}</div>
+      <div class="best-country">${b.country} • ${b.stops_label}</div>
+      <div class="best-stats">
+        <div class="best-stat"><div class="best-stat-val">${b.price}</div><div class="best-stat-lbl">למנה</div></div>
+        ${b.duration?`<div class="best-stat"><div class="best-stat-val">${fmtDur(b.duration)}</div><div class="best-stat-lbl">זמן טיסה</div></div>`:''}
+      </div>
+      <a class="best-link" href="${b.link}" target="_blank" rel="noopener">פתח ב-Google Flights ↗</a>`;
+  }
+}
+</script>
+</body>
+</html>
