@@ -2643,28 +2643,31 @@ function _flightSiteLinks(origin,dest,dep,ret){
   const d2=ret?ret.replace(/-/g,''):'';
   const route=ret?`${d1}/${d2}`:d1;
   const retParam=ret?`/${ret}`:'';
-  return [
-    {
-      name:'Google Flights',color:'#4285f4',
-      url:`https://www.google.com/travel/flights/search?q=flights+from+${origin}+to+${dest}&dates=${d1}${d2?','+d2:''}`,
-    },
-    {
-      name:'Skyscanner',color:'#0770e3',
-      url:`https://www.skyscanner.co.il/transport/flights/${origin}/${dest}/${route}/`,
-    },
-    {
-      name:'Kiwi.com',color:'#00b2a9',
-      url:`https://www.kiwi.com/en/search/results/${origin}/${dest}/${dep}${retParam}/`,
-    },
-    {
-      name:'Kayak',color:'#ff690f',
-      url:`https://www.kayak.co.il/flights/${origin}-${dest}/${dep}${retParam}`,
-    },
-    {
-      name:'Momondo',color:'#6d28d9',
-      url:`https://www.momondo.co.il/flight-search/${origin}-${dest}/${dep}${ret?'/'+ret:''}`,
-    },
-  ];
+  const tripType=ret?'R':'O';
+  return {
+    compare:[
+      {name:'Google Flights',color:'#4285f4',
+       url:`https://www.google.com/travel/flights/search?q=flights+from+${origin}+to+${dest}&dates=${d1}${d2?','+d2:''}`},
+      {name:'Skyscanner',color:'#0770e3',
+       url:`https://www.skyscanner.co.il/transport/flights/${origin}/${dest}/${route}/`},
+      {name:'Kiwi.com',color:'#00b2a9',
+       url:`https://www.kiwi.com/en/search/results/${origin}/${dest}/${dep}${retParam}/`},
+      {name:'Kayak',color:'#ff690f',
+       url:`https://www.kayak.co.il/flights/${origin}-${dest}/${dep}${retParam}`},
+      {name:'Momondo',color:'#6d28d9',
+       url:`https://www.momondo.co.il/flight-search/${origin}-${dest}/${dep}${ret?'/'+ret:''}`},
+    ],
+    airlines:[
+      {name:'Etihad ✈ AUH',color:'#bd8b13',
+       url:`https://www.etihad.com/en-il/book/flight-search#/?carrier=EY&origin=${origin}&destination=${dest}&departureDate=${dep}${ret?'&returnDate='+ret:''}&cabin=Y&adults=1&type=${tripType}`},
+      {name:'Emirates ✈ DXB',color:'#d71921',
+       url:`https://www.emirates.com/il/english/booking/flightsearch/?origin=${origin}&destination=${dest}&departDate=${dep}${ret?'&returnDate='+ret:''}&adults=1&triptype=${ret?'R':'O'}`},
+      {name:'Turkish ✈ IST',color:'#e30a17',
+       url:`https://www.turkishairlines.com/en-il/flights/${origin.toLowerCase()}-to-${dest.toLowerCase()}/`},
+      {name:'El Al',color:'#003399',
+       url:`https://www.elal.com/en/Flights/SearchResults/?orig=${origin}&dest=${dest}&dd=${dep}${ret?'&rd='+ret:''}&pax=1&cls=E`},
+    ],
+  };
 }
 
 function renderFlights(rows){
@@ -2674,23 +2677,25 @@ function renderFlights(rows){
   const dep=document.getElementById('flight-depart')?.value||'';
   const ret=document.getElementById('flight-return')?.value||'';
 
-  const siteLinks=origin&&dest&&dep?_flightSiteLinks(origin,dest,dep,ret):[];
-  const sitesHtml=siteLinks.length?`
-    <div style="background:#fff;border-radius:14px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:4px">
-      <div style="font-size:12px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">
-        🔍 חפש גם ב — לעיתים מוצאים זול יותר
+  const links=origin&&dest&&dep?_flightSiteLinks(origin,dest,dep,ret):null;
+  const sitesHtml=links?`
+    <div style="background:#fff;border-radius:14px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+        🔍 השוואת מחירים — לעיתים מוצאים זול יותר
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        ${siteLinks.map(s=>`
-          <a href="${esc(s.url)}" target="_blank" rel="noopener"
-             style="padding:9px 16px;background:${s.color};color:#fff;border-radius:10px;
-                    text-decoration:none;font-size:13px;font-weight:700;transition:opacity .15s"
-             onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-            ${esc(s.name)} ↗
-          </a>`).join('')}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        ${links.compare.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener"
+           style="padding:9px 14px;background:${s.color};color:#fff;border-radius:10px;text-decoration:none;font-size:13px;font-weight:700">${esc(s.name)} ↗</a>`).join('')}
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+        ✈️ חברות תעופה ישירות — מלאי מלא
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${links.airlines.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener"
+           style="padding:9px 14px;background:${s.color};color:#fff;border-radius:10px;text-decoration:none;font-size:13px;font-weight:700">${esc(s.name)} ↗</a>`).join('')}
       </div>
       <div style="font-size:11px;color:var(--dim);margin-top:10px">
-        💡 טיפ: אם אתה כרגע במדינה אחרת (הודו, תאילנד...) — האתרים יראו לך מחירים מקומיים זולים יותר
+        💡 חברות תעופה ישירות — מראות לך את כל הטיסות כולל עצירות ביניים שאתרי ההשוואה מפספסים
       </div>
     </div>`:'';
 
