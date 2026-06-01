@@ -1643,6 +1643,7 @@ function buildQuery(){
 async function startSearch(){
   if(!apiKey){alert('נא להזין SerpAPI Key');return}
   if(mode==='attraction'){doAttractionSearch();return}
+  if(mode==='flight'){doFlightSearch();return}
   const query=buildQuery();
   if(!query.trim()){alert('נא לבחור יעד');return}
   if(mode==='hotel'){
