@@ -1021,6 +1021,21 @@ window.addEventListener('DOMContentLoaded',async()=>{
 
   if(serverHasKey) apiKey=apiKey||'SERVER';
 
+  // ?go=1 in URL = user already went through incognito flow → skip screens
+  const urlParams=new URLSearchParams(location.search);
+  if(urlParams.get('go')==='1'){
+    _unlockCards();
+    document.getElementById('entry-step0').style.display='none';
+    document.getElementById('entry-step1').style.display='none';
+    document.getElementById('entry-step-mobile').style.display='none';
+    document.getElementById('entry-overlay').style.display='none';
+    sessionStorage.setItem('incognito_confirmed','1');
+    // Clean URL
+    history.replaceState({},'',location.pathname);
+    startHealth();
+    return;
+  }
+
   const alreadyConfirmed=sessionStorage.getItem('incognito_confirmed');
   if(alreadyConfirmed){
     // Same session — already went through incognito flow
@@ -1087,21 +1102,13 @@ function chooseDesktop(){
 }
 
 function copyAndClose(){
-  navigator.clipboard.writeText(location.href).then(()=>{
+  // Copy URL with ?go=1 so next open skips incognito screen
+  const url=location.origin+location.pathname+'?go=1';
+  navigator.clipboard.writeText(url).then(()=>{
     const btn=document.getElementById('copy-link-btn')||document.getElementById('copy-link-btn-m');
-    if(btn){btn.textContent='✅ הועתק! סוגר...';btn.style.background='#22c55e';btn.style.color='#000';}
-    // Try to close immediately
+    if(btn){btn.textContent='✅ הועתק! פתח טאב חדש (אנונימי) והדבק';btn.style.background='#22c55e';btn.style.color='#000';btn.style.fontSize='14px';}
     try{window.close();}catch{}
-    // If still open after 600ms — browser blocked it, show manual instruction
-    setTimeout(()=>{
-      if(!window.closed){
-        if(btn){
-          btn.textContent='✅ הועתק — סגור את הכרטיסייה ידנית';
-          btn.style.fontSize='14px';
-        }
-      }
-    },600);
-  }).catch(()=>{prompt('העתק את הקישור:',location.href);});
+  }).catch(()=>{prompt('העתק:',location.origin+location.pathname+'?go=1');});
 }
 
 /* ── ENTRY ── */
