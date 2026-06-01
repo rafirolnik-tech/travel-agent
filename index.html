@@ -782,21 +782,31 @@ tr:hover td{background:#f8fafc}
     <!-- FLIGHT FORM -->
     <div id="form-flight" class="scard" style="display:none">
       <div class="stitle">פרטי טיסה</div>
-      <div style="background:#eff6ff;border-radius:10px;padding:10px 13px;font-size:12px;color:#1e40af;margin-bottom:4px;line-height:1.6">
-        <b>קודי IATA נפוצים:</b> TLV=תל אביב &nbsp;·&nbsp; BKK=בנגקוק &nbsp;·&nbsp; HKT=פוקט &nbsp;·&nbsp; JFK=ניו יורק &nbsp;·&nbsp; LHR=לונדון<br>
-        לא יודע? <a href="https://www.iata.org/en/publications/directories/code-search/" target="_blank" rel="noopener" style="color:#2563eb;font-weight:700">חפש קוד ←</a>
-      </div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="frow">
           <div class="fwrap">
-            <label class="flabel">מוצא (קוד IATA)</label>
-            <input type="text" id="flight-origin" placeholder="TLV" maxlength="4" dir="ltr" style="text-transform:uppercase"
-              onblur="if(this.value.length>=3)_scrollNext(document.getElementById('flight-dest')?.parentElement,150)">
+            <label class="flabel">מאיפה?</label>
+            <div class="ss-wrap" id="ss-origin-wrap">
+              <input type="text" id="ss-origin-inp" placeholder="תל אביב, ניו יורק..."
+                     autocomplete="off" dir="rtl"
+                     oninput="filterAirport('origin')"
+                     onfocus="openAirportDrop('origin')"
+                     onkeydown="airportDirKey(event,'origin')">
+              <div class="ss-list" id="ss-origin-list"></div>
+            </div>
+            <input type="hidden" id="flight-origin" value="TLV">
           </div>
           <div class="fwrap">
-            <label class="flabel">יעד (קוד IATA)</label>
-            <input type="text" id="flight-dest" placeholder="BKK" maxlength="4" dir="ltr" style="text-transform:uppercase"
-              onblur="if(this.value.length>=3)_scrollNext(document.getElementById('flight-depart')?.parentElement,150)">
+            <label class="flabel">לאן?</label>
+            <div class="ss-wrap" id="ss-dest-wrap">
+              <input type="text" id="ss-dest-inp" placeholder="בנגקוק, לונדון..."
+                     autocomplete="off" dir="rtl"
+                     oninput="filterAirport('dest')"
+                     onfocus="openAirportDrop('dest')"
+                     onkeydown="airportDirKey(event,'dest')">
+              <div class="ss-list" id="ss-dest-list"></div>
+            </div>
+            <input type="hidden" id="flight-dest" value="">
           </div>
         </div>
         <div class="frow">
@@ -2270,6 +2280,217 @@ function doHotelSearch(){
   });
 }
 
+/* ── AIRPORT SEARCH ── */
+const AIRPORTS=[
+  // ישראל
+  {he:'תל אביב — בן גוריון',en:'Tel Aviv',iata:'TLV'},
+  {he:'אילת — רמון',en:'Eilat Ramon',iata:'ETH'},
+  // תאילנד
+  {he:'בנגקוק — סווארנבהומי',en:'Bangkok',iata:'BKK'},
+  {he:'בנגקוק — דון מואנג',en:'Bangkok Don Mueang',iata:'DMK'},
+  {he:'פוקט',en:'Phuket',iata:'HKT'},
+  {he:"צ'יאנג מאי",en:'Chiang Mai',iata:'CNX'},
+  {he:'קו סמוי',en:'Koh Samui',iata:'USM'},
+  {he:'קראבי',en:'Krabi',iata:'KBV'},
+  {he:'פאטאיה — או טאפאו',en:'Pattaya',iata:'UTP'},
+  // יפן
+  {he:'טוקיו — נאריטה',en:'Tokyo Narita',iata:'NRT'},
+  {he:'טוקיו — הנדה',en:'Tokyo Haneda',iata:'HND'},
+  {he:'אוסקה — קאנסאי',en:'Osaka',iata:'KIX'},
+  {he:'קיוטו (דרך אוסקה)',en:'Kyoto via Osaka',iata:'KIX'},
+  {he:'סאפורו',en:'Sapporo',iata:'CTS'},
+  {he:'פוקואוקה',en:'Fukuoka',iata:'FUK'},
+  // קוריאה
+  {he:'סיאול — אינצ\'ון',en:'Seoul Incheon',iata:'ICN'},
+  // סינגפור
+  {he:'סינגפור — צ\'אנגי',en:'Singapore',iata:'SIN'},
+  // מלזיה
+  {he:'קואלה לומפור',en:'Kuala Lumpur',iata:'KUL'},
+  {he:'פנאנג',en:'Penang',iata:'PEN'},
+  // אינדונזיה
+  {he:"באלי — נגורה ראי",en:'Bali',iata:'DPS'},
+  {he:"ג'קרטה",en:'Jakarta',iata:'CGK'},
+  // ויאטנם
+  {he:'האנוי',en:'Hanoi',iata:'HAN'},
+  {he:"הו צ'י מין",en:'Ho Chi Minh City',iata:'SGN'},
+  {he:'דה נאנג',en:'Da Nang',iata:'DAD'},
+  {he:'פו קוק',en:'Phu Quoc',iata:'PQC'},
+  // הודו
+  {he:'דלהי',en:'Delhi',iata:'DEL'},
+  {he:'מומבאי',en:'Mumbai',iata:'BOM'},
+  {he:'גואה',en:'Goa',iata:'GOI'},
+  {he:"ג'איפור",en:'Jaipur',iata:'JAI'},
+  // סין
+  {he:"בייג'ינג",en:'Beijing',iata:'PEK'},
+  {he:'שנגחאי — פודונג',en:'Shanghai',iata:'PVG'},
+  // טורקיה
+  {he:'איסטנבול — SAW',en:'Istanbul Sabiha',iata:'SAW'},
+  {he:'איסטנבול — IST',en:'Istanbul',iata:'IST'},
+  {he:'אנטליה',en:'Antalya',iata:'AYT'},
+  // איחוד האמירויות
+  {he:'דובאי',en:'Dubai',iata:'DXB'},
+  {he:'אבו דאבי',en:'Abu Dhabi',iata:'AUH'},
+  // קטר
+  {he:'דוחה',en:'Doha',iata:'DOH'},
+  // ירדן
+  {he:'עמאן',en:'Amman',iata:'AMM'},
+  // מצרים
+  {he:'קהיר',en:'Cairo',iata:'CAI'},
+  {he:"שארם א-שייח'",en:'Sharm el-Sheikh',iata:'SSH'},
+  {he:'הורגדה',en:'Hurghada',iata:'HRG'},
+  // מרוקו
+  {he:'מרקש',en:'Marrakech',iata:'RAK'},
+  {he:'קזבלנקה',en:'Casablanca',iata:'CMN'},
+  // אירופה
+  {he:'לונדון — היתרו',en:'London Heathrow',iata:'LHR'},
+  {he:'לונדון — גטוויק',en:'London Gatwick',iata:'LGW'},
+  {he:'פריז — שארל דה גול',en:'Paris CDG',iata:'CDG'},
+  {he:'פריז — אורלי',en:'Paris Orly',iata:'ORY'},
+  {he:'אמסטרדם',en:'Amsterdam',iata:'AMS'},
+  {he:'ברלין',en:'Berlin',iata:'BER'},
+  {he:'פרנקפורט',en:'Frankfurt',iata:'FRA'},
+  {he:'מינכן',en:'Munich',iata:'MUC'},
+  {he:'רומא — פיומיצ\'ינו',en:'Rome',iata:'FCO'},
+  {he:'מילאנו — מלפנסה',en:'Milan',iata:'MXP'},
+  {he:'ברצלונה',en:'Barcelona',iata:'BCN'},
+  {he:'מדריד',en:'Madrid',iata:'MAD'},
+  {he:'ליסבון',en:'Lisbon',iata:'LIS'},
+  {he:'אתונה',en:'Athens',iata:'ATH'},
+  {he:'וינה',en:'Vienna',iata:'VIE'},
+  {he:'פראג',en:'Prague',iata:'PRG'},
+  {he:'בודפשט',en:'Budapest',iata:'BUD'},
+  {he:'ורשה',en:'Warsaw',iata:'WAW'},
+  {he:'קופנהגן',en:'Copenhagen',iata:'CPH'},
+  {he:'סטוקהולם — ארלנדה',en:'Stockholm',iata:'ARN'},
+  {he:'דובליאן',en:'Dublin',iata:'DUB'},
+  {he:'זריך',en:'Zurich',iata:'ZRH'},
+  {he:'בריסל',en:'Brussels',iata:'BRU'},
+  {he:'דוברובניק',en:'Dubrovnik',iata:'DBV'},
+  {he:'רייקיאוויק',en:'Reykjavik',iata:'KEF'},
+  // ארה"ב
+  {he:'ניו יורק — JFK',en:'New York JFK',iata:'JFK'},
+  {he:'ניו יורק — נוארק',en:'New York Newark',iata:'EWR'},
+  {he:'לוס אנג\'לס',en:'Los Angeles',iata:'LAX'},
+  {he:'מיאמי',en:'Miami',iata:'MIA'},
+  {he:'לאס וגאס',en:'Las Vegas',iata:'LAS'},
+  {he:'אורלנדו',en:'Orlando',iata:'MCO'},
+  {he:'שיקגו — אוהר',en:'Chicago',iata:'ORD'},
+  {he:'סן פרנסיסקו',en:'San Francisco',iata:'SFO'},
+  {he:'סיאטל',en:'Seattle',iata:'SEA'},
+  {he:'הוואי — הונולולו',en:'Hawaii',iata:'HNL'},
+  {he:'בוסטון',en:'Boston',iata:'BOS'},
+  {he:'וושינגטון — דאלאס',en:'Washington Dulles',iata:'IAD'},
+  {he:'יוסטון',en:'Houston',iata:'IAH'},
+  {he:'דאלאס',en:'Dallas',iata:'DFW'},
+  {he:'דנוור',en:'Denver',iata:'DEN'},
+  {he:'פניקס',en:'Phoenix',iata:'PHX'},
+  {he:'אטלנטה',en:'Atlanta',iata:'ATL'},
+  {he:'אוסטין — טקסס',en:'Austin Texas',iata:'AUS'},
+  {he:'דאלאס — לאב פילד',en:'Dallas Love Field',iata:'DAL'},
+  {he:'יוסטון — הובי',en:'Houston Hobby',iata:'HOU'},
+  // קנדה
+  {he:'טורונטו',en:'Toronto',iata:'YYZ'},
+  {he:'ונקובר',en:'Vancouver',iata:'YVR'},
+  {he:'מונטריאול',en:'Montreal',iata:'YUL'},
+  // מקסיקו
+  {he:'קנקון',en:'Cancun',iata:'CUN'},
+  {he:'מקסיקו סיטי',en:'Mexico City',iata:'MEX'},
+  // דרום אמריקה
+  {he:'ריו דה ז\'נרו',en:'Rio de Janeiro',iata:'GIG'},
+  {he:'סאו פאולו',en:'Sao Paulo',iata:'GRU'},
+  {he:'בואנוס איירס',en:'Buenos Aires',iata:'EZE'},
+  {he:'לימה',en:'Lima',iata:'LIM'},
+  {he:'בוגוטה',en:'Bogota',iata:'BOG'},
+  // אפריקה
+  {he:'קייפטאון',en:'Cape Town',iata:'CPT'},
+  {he:'יוהנסבורג',en:'Johannesburg',iata:'JNB'},
+  {he:'נירובי',en:'Nairobi',iata:'NBO'},
+  {he:'אדיס אבבה',en:'Addis Ababa',iata:'ADD'},
+  // אוסטרליה
+  {he:'סידני',en:'Sydney',iata:'SYD'},
+  {he:'מלבורן',en:'Melbourne',iata:'MEL'},
+  {he:'בריסביין',en:'Brisbane',iata:'BNE'},
+  {he:'פרת\'',en:'Perth',iata:'PER'},
+  // ניו זילנד
+  {he:'אוקלנד',en:'Auckland',iata:'AKL'},
+  {he:"קווינסטאון",en:'Queenstown',iata:'ZQN'},
+];
+
+const _airportState={
+  origin:{focusIdx:-1},
+  dest:{focusIdx:-1},
+};
+
+function filterAirport(id){
+  const q=document.getElementById(`ss-${id}-inp`).value.toLowerCase().trim();
+  const list=document.getElementById(`ss-${id}-list`);
+  _airportState[id].focusIdx=-1;
+  if(!q){list.classList.remove('open');return;}
+  const matches=AIRPORTS.filter(a=>
+    a.he.includes(q)||a.en.toLowerCase().includes(q)||a.iata.toLowerCase().includes(q)
+  ).slice(0,8);
+  list.innerHTML='';
+  if(!matches.length){list.innerHTML='<div class="ss-empty">לא נמצא שדה תעופה</div>';list.classList.add('open');return;}
+  matches.forEach(a=>{
+    const d=document.createElement('div');d.className='ss-opt';
+    d.innerHTML=`${a.he} <span style="color:#94a3b8;font-size:12px;margin-right:6px">${a.iata}</span>`;
+    d.onmousedown=e=>{e.preventDefault();selectAirport(id,a);};
+    list.appendChild(d);
+  });
+  list.classList.add('open');
+}
+
+function openAirportDrop(id){
+  const q=document.getElementById(`ss-${id}-inp`).value.trim();
+  if(q) filterAirport(id);
+}
+
+function selectAirport(id,a){
+  document.getElementById(`ss-${id}-inp`).value=`${a.he} (${a.iata})`;
+  document.getElementById(`flight-${id==='origin'?'origin':'dest'}`).value=a.iata;
+  document.getElementById(`ss-${id}-list`).classList.remove('open');
+  if(id==='origin') _scrollNext(document.getElementById('ss-dest-inp')?.parentElement,150);
+  if(id==='dest')   _scrollNext(document.getElementById('flight-depart')?.parentElement,150);
+}
+
+function airportDirKey(e,id){
+  const list=document.getElementById(`ss-${id}-list`);
+  const opts=list.querySelectorAll('.ss-opt');
+  if(e.key==='Escape'){list.classList.remove('open');return;}
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const idx=_airportState[id].focusIdx;
+    if(idx>=0&&opts[idx]){opts[idx].onmousedown(e);}
+    return;
+  }
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    _airportState[id].focusIdx=Math.min(_airportState[id].focusIdx+1,opts.length-1);
+  }else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    _airportState[id].focusIdx=Math.max(_airportState[id].focusIdx-1,0);
+  }
+  opts.forEach((o,i)=>o.classList.toggle('focused',i===_airportState[id].focusIdx));
+  if(_airportState[id].focusIdx>=0)opts[_airportState[id].focusIdx].scrollIntoView({block:'nearest'});
+}
+
+// Close airport dropdowns on outside click
+document.addEventListener('click',e=>{
+  ['origin','dest'].forEach(id=>{
+    const wrap=document.getElementById(`ss-${id}-wrap`);
+    if(wrap&&!wrap.contains(e.target))document.getElementById(`ss-${id}-list`).classList.remove('open');
+  });
+});
+
+// Set TLV as default origin on load
+window.addEventListener('DOMContentLoaded',()=>{
+  const tlv=AIRPORTS.find(a=>a.iata==='TLV');
+  if(tlv){
+    const inp=document.getElementById('ss-origin-inp');
+    if(inp) inp.value=`${tlv.he} (TLV)`;
+  }
+},true);
+
 /* ── FLIGHT SEARCH ── */
 function doFlightSearch(){
   const origin=document.getElementById('flight-origin').value.trim().toUpperCase();
@@ -2277,8 +2498,9 @@ function doFlightSearch(){
   const dep=document.getElementById('flight-depart').value;
   const ret=document.getElementById('flight-return').value;
   const adults=+document.getElementById('flight-adults').value||1;
-  const geoList=activeStrategy?activeStrategy.geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'];
-  if(!origin||!dest){alert('נא להזין קודי שדה תעופה');return}
+  const geoList=['🇮🇳 הודו','🇸🇬 סינגפור'];
+  if(!origin||origin.length<2){alert('נא לבחור שדה תעופה מוצא');return}
+  if(!dest||dest.length<2){alert('נא לבחור שדה תעופה יעד');return}
   if(!dep){alert('נא לבחור תאריך יציאה');return}
   closeDrawer();showResultsPage('flight');initPG(geoList);
   const body={api_key:apiKey,origin,destination:dest,departure_date:dep,return_date:ret,adults,countries:geoList};
