@@ -974,14 +974,28 @@ function hashStr(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>
 function today(){return new Date().toISOString().split('T')[0]}
 function addDays(d,n){const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().split('T')[0]}
 
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded',async()=>{
   const t=today();
   document.getElementById('hotel-checkin').value =addDays(t,30);
   document.getElementById('hotel-checkout').value=addDays(t,37);
   document.getElementById('flight-depart').value =addDays(t,30);
   document.getElementById('flight-return').value =addDays(t,37);
   apiKey=localStorage.getItem('serpapi_key')||'';
-  if(apiKey){
+
+  // Check if server has a built-in API key
+  let serverHasKey=false;
+  try{
+    const r=await fetch(`${API}/config`,{signal:AbortSignal.timeout(5000)});
+    if(r.ok){const d=await r.json();serverHasKey=d.has_server_key;}
+  }catch{}
+
+  if(serverHasKey){
+    // No key needed — skip all entry screens
+    apiKey=apiKey||'SERVER';
+    document.getElementById('entry-step0').style.display='none';
+    document.getElementById('entry-step1').style.display='none';
+    document.getElementById('entry-overlay').style.display='none';
+  } else if(apiKey){
     document.getElementById('entry-step0').style.display='none';
     document.getElementById('entry-step1').style.display='none';
     document.getElementById('entry-overlay').style.display='none';

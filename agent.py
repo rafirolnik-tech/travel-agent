@@ -8,9 +8,22 @@ from flask_cors import CORS
 import requests
 import json
 import traceback
+import os
 
 app = Flask(__name__, static_folder='.')
 CORS(app)
+
+# Server-side SerpAPI key (optional — set SERP_API_KEY env var on Render)
+SERVER_API_KEY = os.environ.get('SERP_API_KEY', '')
+
+def _resolve_key(client_key):
+    """Use client key if provided, otherwise fall back to server key."""
+    return client_key.strip() if client_key and client_key.strip() else SERVER_API_KEY
+
+@app.route('/config')
+def get_config():
+    """Tell the frontend whether a server-side API key is configured."""
+    return jsonify({'has_server_key': bool(SERVER_API_KEY)})
 
 # מדינות לבדיקת geo-pricing
 GEO_COUNTRIES = {
@@ -673,7 +686,7 @@ def get_countries():
 def verify_hotel():
     """Quick single search to confirm destination before full scan"""
     data       = request.json
-    api_key    = data.get('api_key', '').strip()
+    api_key    = _resolve_key(data.get('api_key', ''))
     query      = data.get('query', '').strip()
     check_in   = data.get('check_in')
     check_out  = data.get('check_out')
@@ -764,7 +777,7 @@ def verify_hotel():
 def search_hotels_stream():
     """Stream hotel results country by country (SSE)"""
     data            = request.json or {}
-    api_key         = data.get('api_key', '').strip()
+    api_key         = _resolve_key(data.get('api_key', ''))
     query           = data.get('query', '').strip()
     check_in        = data.get('check_in', '')
     check_out       = data.get('check_out', '')
@@ -856,7 +869,7 @@ def search_hotels_stream():
 def search_flights_stream():
     """Stream flight results country by country (SSE)"""
     data           = request.json or {}
-    api_key        = data.get('api_key', '').strip()
+    api_key        = _resolve_key(data.get('api_key', ''))
     origin         = data.get('origin', '').strip().upper()
     destination    = data.get('destination', '').strip().upper()
     departure_date = data.get('departure_date', '')
@@ -1216,7 +1229,7 @@ def search_attractions_city(api_key: str, city: str, country: str,
 def search_attractions_stream():
     """Stream attraction results city by city (SSE)"""
     data          = request.json
-    api_key       = data.get('api_key', '').strip()
+    api_key       = _resolve_key(data.get('api_key', ''))
     cities        = data.get('cities', [])
     trip_purpose  = data.get('trip_purpose', 'general')
     children_ages = data.get('children_ages', [])
