@@ -2637,9 +2637,65 @@ function renderHotels(rows, maxBudget, actualNights){
     </tr>`).join('')}</tbody></table>`;
 }
 
+function _flightSiteLinks(origin,dest,dep,ret){
+  const d1=dep.replace(/-/g,'');
+  const d2=ret?ret.replace(/-/g,''):'';
+  const route=ret?`${d1}/${d2}`:d1;
+  const retParam=ret?`/${ret}`:'';
+  return [
+    {
+      name:'Google Flights',color:'#4285f4',
+      url:`https://www.google.com/travel/flights/search?q=flights+from+${origin}+to+${dest}&dates=${d1}${d2?','+d2:''}`,
+    },
+    {
+      name:'Skyscanner',color:'#0770e3',
+      url:`https://www.skyscanner.co.il/transport/flights/${origin}/${dest}/${route}/`,
+    },
+    {
+      name:'Kiwi.com',color:'#00b2a9',
+      url:`https://www.kiwi.com/en/search/results/${origin}/${dest}/${dep}${retParam}/`,
+    },
+    {
+      name:'Kayak',color:'#ff690f',
+      url:`https://www.kayak.co.il/flights/${origin}-${dest}/${dep}${retParam}`,
+    },
+    {
+      name:'Momondo',color:'#6d28d9',
+      url:`https://www.momondo.co.il/flight-search/${origin}-${dest}/${dep}${ret?'/'+ret:''}`,
+    },
+  ];
+}
+
 function renderFlights(rows){
   const cheapest=rows[0]?.price_num;
-  document.getElementById('results-table-wrap').innerHTML=`<table>
+  const origin=document.getElementById('flight-origin')?.value||'';
+  const dest=document.getElementById('flight-dest')?.value||'';
+  const dep=document.getElementById('flight-depart')?.value||'';
+  const ret=document.getElementById('flight-return')?.value||'';
+
+  const siteLinks=origin&&dest&&dep?_flightSiteLinks(origin,dest,dep,ret):[];
+  const sitesHtml=siteLinks.length?`
+    <div style="background:#fff;border-radius:14px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:4px">
+      <div style="font-size:12px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">
+        🔍 חפש גם ב — לעיתים מוצאים זול יותר
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${siteLinks.map(s=>`
+          <a href="${esc(s.url)}" target="_blank" rel="noopener"
+             style="padding:9px 16px;background:${s.color};color:#fff;border-radius:10px;
+                    text-decoration:none;font-size:13px;font-weight:700;transition:opacity .15s"
+             onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+            ${esc(s.name)} ↗
+          </a>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-top:10px">
+        💡 טיפ: אם אתה כרגע במדינה אחרת (הודו, תאילנד...) — האתרים יראו לך מחירים מקומיים זולים יותר
+      </div>
+    </div>`:'';
+
+  document.getElementById('results-table-wrap').innerHTML=`
+    ${sitesHtml}
+    <table>
     <thead><tr><th>#</th><th></th><th>חברת תעופה</th><th>עצירות</th><th>משך</th><th>מחיר</th><th>קישור</th></tr></thead>
     <tbody>${rows.map((r,i)=>`<tr>
       <td>${i+1}</td>
