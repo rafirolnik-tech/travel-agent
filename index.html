@@ -455,43 +455,72 @@ tr:hover td{background:#f8fafc}
 </head>
 <body>
 
-<!-- ENTRY OVERLAY -->
-<!-- ENTRY STEP 1: Incognito warning -->
-<div id="entry-step1" style="position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#1e40af 100%);display:flex;align-items:center;justify-content:center;z-index:1000;transition:opacity .5s">
-  <div style="text-align:center;padding:40px 24px;max-width:560px;width:92vw">
-    <div style="font-size:72px;margin-bottom:24px">🕵️</div>
-    <div style="font-size:clamp(26px,5vw,40px);font-weight:900;color:#fff;margin-bottom:12px;line-height:1.15">
-      רגע לפני שמתחילים
+<!-- ENTRY STEP 0: Mobile or Desktop -->
+<div id="entry-step0" style="position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;overflow:hidden">
+  <!-- Agent background image -->
+  <img src="https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200&q=80"
+       alt="" aria-hidden="true"
+       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.25) saturate(.6)">
+  <!-- Dark gradient overlay -->
+  <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.95) 0%,rgba(0,0,0,.55) 50%,rgba(0,0,0,.3) 100%)"></div>
+
+  <!-- Content -->
+  <div style="position:relative;text-align:center;padding:40px 28px;max-width:480px;width:92vw">
+    <div style="font-size:clamp(13px,2vw,16px);font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#fbbf24;margin-bottom:20px;opacity:.9">TRAVEL PRICE AGENT</div>
+    <div style="font-size:clamp(32px,8vw,64px);font-weight:900;color:#fff;line-height:1;margin-bottom:10px;letter-spacing:-1px">רגע לפני<br>שמתחילים</div>
+    <div style="font-size:clamp(14px,2.5vw,18px);color:rgba(255,255,255,.55);margin-bottom:48px;font-weight:400">מאיזה מכשיר אתה גולש עכשיו?</div>
+
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <!-- Mobile -->
+      <button onclick="chooseMobile()" style="flex:1;min-width:130px;max-width:200px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2);border-radius:20px;padding:28px 20px;cursor:pointer;font-family:inherit;transition:all .2s;color:#fff"
+              onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+        <div style="font-size:44px;margin-bottom:12px">📱</div>
+        <div style="font-size:20px;font-weight:800">נייד</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">סמארטפון / טאבלט</div>
+      </button>
+      <!-- Desktop -->
+      <button onclick="chooseDesktop()" style="flex:1;min-width:130px;max-width:200px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2);border-radius:20px;padding:28px 20px;cursor:pointer;font-family:inherit;transition:all .2s;color:#fff"
+              onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+        <div style="font-size:44px;margin-bottom:12px">💻</div>
+        <div style="font-size:20px;font-weight:800">מחשב</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">Desktop / Laptop</div>
+      </button>
     </div>
-    <div style="font-size:clamp(16px,3vw,22px);font-weight:700;color:#93c5fd;margin-bottom:28px">
-      חובה לעבוד מחלון אנונימי
+  </div>
+</div>
+
+<!-- ENTRY STEP 1: Incognito warning (Desktop only) -->
+<div id="entry-step1" style="position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;overflow:hidden">
+  <!-- Same agent background -->
+  <img src="https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200&q=80"
+       alt="" aria-hidden="true"
+       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.2) saturate(.5)">
+  <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.97) 0%,rgba(0,0,0,.6) 100%)"></div>
+
+  <div style="position:relative;text-align:center;padding:40px 28px;max-width:520px;width:92vw">
+    <div style="font-size:clamp(28px,6vw,48px);font-weight:900;color:#fff;margin-bottom:8px;line-height:1.1">
+      <span style="color:#ef4444">חובה</span> <span style="color:#fbbf24">לעבוד</span><br>
+      <span style="color:#fbbf24">מחלון אנונימי</span>
     </div>
-    <div style="background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:18px;padding:24px;margin-bottom:32px;text-align:right">
-      <div style="font-size:15px;color:#e2e8f0;line-height:1.8">
-        כל מה שתחפש <b style="color:#fff">יישמר בדפדפן שלך</b> אם לא תהיה בחלון אנונימי —
-        כולל מחירים, יעדים ומידע אישי.<br><br>
-        <span style="color:#fbbf24;font-weight:700">כנס עכשיו לחלון אנונימי ופתח שוב את הקישור</span>
-      </div>
+    <div style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.6">
+      כדי שהמחירים שתמצא לא יישמרו בדפדפן שלך<br>ולא ישפיעו על תוצאות עתידיות
     </div>
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px">
-      <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:12px 20px;color:#cbd5e1;font-size:13px">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px">Chrome / Edge</div>
-        Ctrl + Shift + N
-      </div>
-      <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:12px 20px;color:#cbd5e1;font-size:13px">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px">Firefox</div>
-        Ctrl + Shift + P
-      </div>
-      <div style="background:rgba(255,255,255,.12);border-radius:12px;padding:12px 20px;color:#cbd5e1;font-size:13px">
-        <div style="font-weight:700;color:#fff;margin-bottom:4px">Safari (Mac)</div>
-        ⌘ + Shift + N
-      </div>
+
+    <!-- Browser shortcut (auto-detected) -->
+    <div id="browser-shortcut" style="background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;margin-bottom:24px">
+      <div id="browser-name" style="font-size:13px;color:#fbbf24;font-weight:700;margin-bottom:10px;letter-spacing:1px"></div>
+      <div id="browser-keys" style="font-size:clamp(20px,4vw,32px);font-weight:900;color:#fff;letter-spacing:2px;font-family:monospace"></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:8px">לפתיחת חלון אנונימי</div>
     </div>
-    <button onclick="goToStep2()" style="padding:18px 48px;background:#2563eb;color:#fff;border:none;border-radius:16px;font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 24px rgba(37,99,235,.5)">
-      ✓ אני בחלון אנונימי — אפשר להמשיך
+
+    <!-- Copy link button -->
+    <button onclick="copyAppLink()" id="copy-link-btn"
+            style="width:100%;padding:16px;background:#fbbf24;color:#000;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:12px;transition:all .2s">
+      📋 העתק את הקישור — הדבק בחלון האנונימי
     </button>
-    <button onclick="goToStep2()" style="margin-top:16px;font-size:13px;color:#64748b;cursor:pointer;background:none;border:none;font-family:inherit">
-      דלג (לא מומלץ)
+    <button onclick="goToStep2()"
+            style="background:none;border:none;color:rgba(255,255,255,.4);font-family:inherit;font-size:13px;cursor:pointer;padding:8px">
+      כבר פתחתי חלון אנונימי — המשך ←
     </button>
   </div>
 </div>
@@ -953,11 +982,45 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('flight-return').value =addDays(t,37);
   apiKey=localStorage.getItem('serpapi_key')||'';
   if(apiKey){
+    document.getElementById('entry-step0').style.display='none';
     document.getElementById('entry-step1').style.display='none';
     document.getElementById('entry-overlay').style.display='none';
   }
   startHealth();
 });
+
+/* ── ENTRY STEP 0: Device selection ── */
+function _fadeOut(el,cb){el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>{el.style.display='none';if(cb)cb();},420)}
+function _fadeIn(el,flex){el.style.opacity='0';el.style.display=flex?'flex':'block';requestAnimationFrame(()=>{el.style.transition='opacity .4s';el.style.opacity='1'});}
+
+function chooseMobile(){
+  _fadeOut(document.getElementById('entry-step0'),()=>_fadeIn(document.getElementById('entry-overlay'),true));
+}
+
+function chooseDesktop(){
+  // Detect browser and set shortcut
+  const ua=navigator.userAgent;
+  let name,keys;
+  if(/Firefox/i.test(ua)){name='Firefox';keys='Ctrl + Shift + P';}
+  else if(/Edg/i.test(ua)){name='Microsoft Edge';keys='Ctrl + Shift + N';}
+  else if(/Chrome/i.test(ua)){name='Google Chrome';keys='Ctrl + Shift + N';}
+  else if(/Safari/i.test(ua)){name='Safari';keys='⌘ + Shift + N';}
+  else{name='הדפדפן שלך';keys='Ctrl + Shift + N';}
+  document.getElementById('browser-name').textContent=name;
+  document.getElementById('browser-keys').textContent=keys;
+  _fadeOut(document.getElementById('entry-step0'),()=>_fadeIn(document.getElementById('entry-step1'),true));
+}
+
+function copyAppLink(){
+  const url=location.href;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=document.getElementById('copy-link-btn');
+    btn.textContent='✅ הקישור הועתק — פתח חלון אנונימי והדבק';
+    btn.style.background='#22c55e';btn.style.color='#fff';
+  }).catch(()=>{
+    prompt('העתק את הקישור:',location.href);
+  });
+}
 
 /* ── ENTRY ── */
 function goToStep2(){
