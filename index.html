@@ -650,7 +650,7 @@ tr:hover td{background:#f8fafc}
   <div class="drawer-body">
 
     <!-- GEO -->
-    <div class="scard">
+    <div class="scard" id="geo-card">
       <div class="stitle">יעד הנסיעה</div>
       <div style="display:flex;flex-direction:column;gap:10px">
 
@@ -1216,6 +1216,8 @@ function openDrawer(m){
   document.getElementById('form-flight').style.display     =m==='flight'     ?'':'none';
   document.getElementById('form-attraction').style.display =m==='attraction' ?'':'none';
   document.getElementById('budget-card').style.display     =m==='hotel'      ?'':'none';
+  document.getElementById('geo-card').style.display        =m==='flight'     ?'none':'';
+  document.getElementById('neighborhoods-card').style.display=m==='flight'   ?'none':'';
   document.getElementById('city-label').textContent=m==='hotel'?'עיר יעד':'עיר';
   if(m==='attraction') checkMultiCityContext();
   document.getElementById('drawer').classList.add('open');
