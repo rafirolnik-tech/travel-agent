@@ -17,8 +17,12 @@ CORS(app)
 SERVER_API_KEY = os.environ.get('SERP_API_KEY', '')
 
 def _resolve_key(client_key):
-    """Use client key if provided, otherwise fall back to server key."""
-    return client_key.strip() if client_key and client_key.strip() else SERVER_API_KEY
+    """Use client key if provided, otherwise fall back to server key.
+    'SERVER' is a frontend sentinel meaning 'use server key'."""
+    k = (client_key or '').strip()
+    if not k or k == 'SERVER':
+        return SERVER_API_KEY
+    return k
 
 @app.route('/config')
 def get_config():
