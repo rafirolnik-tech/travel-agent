@@ -489,6 +489,31 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ENTRY STEP MOBILE: Private mode instructions -->
+<div id="entry-step-mobile" style="position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;overflow:hidden">
+  <img src="https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=1200&q=80" alt="" aria-hidden="true"
+       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.2) saturate(.5)">
+  <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.97) 0%,rgba(0,0,0,.6) 100%)"></div>
+  <div style="position:relative;text-align:center;padding:40px 28px;max-width:440px;width:92vw">
+    <div style="font-size:clamp(26px,6vw,44px);font-weight:900;color:#fff;margin-bottom:8px;line-height:1.1">
+      <span style="color:#ef4444">חובה</span><br>
+      <span style="color:#fbbf24">מצב פרטי</span>
+    </div>
+    <div style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:28px;line-height:1.7">
+      בלי מצב פרטי — Google מזהה אותך<br>ומחזיר מחירים גבוהים יותר
+    </div>
+    <div style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:16px;padding:18px;margin-bottom:24px;font-size:15px;color:#fff;line-height:1.8" id="mobile-instr"></div>
+    <button id="copy-link-btn-m" onclick="copyAndClose()"
+            style="width:100%;padding:18px;background:#fbbf24;color:#000;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:12px">
+      📋 העתק קישור וסגור חלון זה
+    </button>
+    <button onclick="_unlockCards();_fadeOut(document.getElementById('entry-step-mobile'))"
+            style="background:none;border:none;color:rgba(255,255,255,.4);font-family:inherit;font-size:13px;cursor:pointer;padding:8px">
+      כבר במצב פרטי — כנס לאפליקציה ←
+    </button>
+  </div>
+</div>
+
 <!-- ENTRY STEP 1: Incognito warning (Desktop only) -->
 <div id="entry-step1" style="position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;overflow:hidden">
   <!-- Same agent background -->
@@ -513,12 +538,12 @@ tr:hover td{background:#f8fafc}
       <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:8px">לפתיחת חלון אנונימי</div>
     </div>
 
-    <!-- Copy link button -->
-    <button onclick="copyAppLink()" id="copy-link-btn"
+    <!-- Copy + close button -->
+    <button id="copy-link-btn" onclick="copyAndClose()"
             style="width:100%;padding:16px;background:#fbbf24;color:#000;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:12px;transition:all .2s">
-      📋 העתק את הקישור — הדבק בחלון האנונימי
+      📋 העתק קישור וסגור חלון זה
     </button>
-    <button onclick="goToStep2()"
+    <button onclick="_unlockCards();goToStep2()"
             style="background:none;border:none;color:rgba(255,255,255,.4);font-family:inherit;font-size:13px;cursor:pointer;padding:8px">
       כבר פתחתי חלון אנונימי — המשך ←
     </button>
@@ -562,10 +587,15 @@ tr:hover td{background:#f8fafc}
     <div class="hero-subtitle">הסוכן שמשיג לך את המחיר האמיתי — ושאף אחד לא יעבוד עליך</div>
   </div>
 
-  <div class="hero-cards">
+  <!-- Incognito lock banner — shown until user confirms private mode -->
+  <div id="incognito-lock" style="display:none;width:100%;max-width:700px;background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.4);border-radius:16px;padding:16px 22px;text-align:center;color:#fca5a5;font-size:14px;font-weight:600;line-height:1.6">
+    🔒 <span style="color:#ef4444;font-weight:800">חובה</span> לפתוח בחלון פרטי/אנונימי — אחרת Google יזהה אותך ותקבל מחירים גבוהים יותר
+  </div>
+
+  <div class="hero-cards" id="hero-cards">
 
     <!-- FLIGHT -->
-    <button class="hero-card" onclick="openDrawer('flight')">
+    <button class="hero-card" id="card-flight" onclick="openDrawer('flight')">
       <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=900&q=85"
            alt="מבט מחלון המטוס" loading="lazy"
            onerror="this.style.opacity='.3'">
@@ -578,7 +608,7 @@ tr:hover td{background:#f8fafc}
     </button>
 
     <!-- HOTEL -->
-    <button class="hero-card" onclick="openDrawer('hotel')">
+    <button class="hero-card" id="card-hotel" onclick="openDrawer('hotel')">
       <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=85"
            alt="בריכת מלון יוקרה" loading="lazy"
            onerror="this.style.opacity='.3'">
@@ -591,7 +621,7 @@ tr:hover td{background:#f8fafc}
     </button>
 
     <!-- EXPERIENCE -->
-    <button class="hero-card" onclick="openDrawer('attraction')">
+    <button class="hero-card" id="card-attraction" onclick="openDrawer('attraction')">
       <img src="https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=900&q=85"
            alt="כדור פורח ושמיים" loading="lazy"
            onerror="this.style.opacity='.3'">
@@ -989,16 +1019,22 @@ window.addEventListener('DOMContentLoaded',async()=>{
     if(r.ok){const d=await r.json();serverHasKey=d.has_server_key;}
   }catch{}
 
-  if(serverHasKey){
-    // No key needed — skip all entry screens
-    apiKey=apiKey||'SERVER';
+  if(serverHasKey) apiKey=apiKey||'SERVER';
+
+  const alreadyConfirmed=sessionStorage.getItem('incognito_confirmed');
+  if(alreadyConfirmed){
+    // Same session — already went through incognito flow
+    _unlockCards();
     document.getElementById('entry-step0').style.display='none';
     document.getElementById('entry-step1').style.display='none';
-    document.getElementById('entry-overlay').style.display='none';
-  } else if(apiKey){
-    document.getElementById('entry-step0').style.display='none';
-    document.getElementById('entry-step1').style.display='none';
-    document.getElementById('entry-overlay').style.display='none';
+    document.getElementById('entry-step-mobile').style.display='none';
+    if(!serverHasKey && !apiKey) _fadeIn(document.getElementById('entry-overlay'),true);
+  } else if(apiKey || serverHasKey){
+    // Has key but hasn't confirmed incognito this session → show device selector
+    _lockCards();
+  } else {
+    // No key, no server key → show device selector (leads to API key screen)
+    _lockCards();
   }
   startHealth();
 });
@@ -1007,12 +1043,37 @@ window.addEventListener('DOMContentLoaded',async()=>{
 function _fadeOut(el,cb){el.style.transition='opacity .4s';el.style.opacity='0';setTimeout(()=>{el.style.display='none';if(cb)cb();},420)}
 function _fadeIn(el,flex){el.style.opacity='0';el.style.display=flex?'flex':'block';requestAnimationFrame(()=>{el.style.transition='opacity .4s';el.style.opacity='1'});}
 
+function _lockCards(){
+  document.getElementById('incognito-lock').style.display='block';
+  ['card-flight','card-hotel','card-attraction'].forEach(id=>{
+    const c=document.getElementById(id);
+    if(c){c.style.opacity='.35';c.style.pointerEvents='none';c.style.filter='grayscale(.8)';}
+  });
+}
+function _unlockCards(){
+  document.getElementById('incognito-lock').style.display='none';
+  ['card-flight','card-hotel','card-attraction'].forEach(id=>{
+    const c=document.getElementById(id);
+    if(c){c.style.opacity='';c.style.pointerEvents='';c.style.filter='';}
+  });
+  sessionStorage.setItem('incognito_confirmed','1');
+}
+
 function chooseMobile(){
-  _fadeOut(document.getElementById('entry-step0'),()=>_fadeIn(document.getElementById('entry-overlay'),true));
+  // Detect mobile browser and show private mode instructions
+  const ua=navigator.userAgent;
+  let instr;
+  if(/iPhone|iPad/i.test(ua)&&/Safari/i.test(ua)&&!/Chrome/i.test(ua))
+    instr='Safari: לחץ על סמל ה-📤 → <b>Open in Private Tab</b>';
+  else if(/iPhone|iPad/i.test(ua))
+    instr='Chrome iOS: לחץ על ⋮ → <b>New Incognito Tab</b>';
+  else
+    instr='Chrome/Samsung: לחץ על ⋮ → <b>New Incognito Tab / Secret Mode</b>';
+  document.getElementById('mobile-instr').innerHTML=instr;
+  _fadeOut(document.getElementById('entry-step0'),()=>_fadeIn(document.getElementById('entry-step-mobile'),true));
 }
 
 function chooseDesktop(){
-  // Detect browser and set shortcut
   const ua=navigator.userAgent;
   let name,keys;
   if(/Firefox/i.test(ua)){name='Firefox';keys='Ctrl + Shift + P';}
@@ -1025,15 +1086,12 @@ function chooseDesktop(){
   _fadeOut(document.getElementById('entry-step0'),()=>_fadeIn(document.getElementById('entry-step1'),true));
 }
 
-function copyAppLink(){
-  const url=location.href;
-  navigator.clipboard.writeText(url).then(()=>{
-    const btn=document.getElementById('copy-link-btn');
-    btn.textContent='✅ הקישור הועתק — פתח חלון אנונימי והדבק';
-    btn.style.background='#22c55e';btn.style.color='#fff';
-  }).catch(()=>{
-    prompt('העתק את הקישור:',location.href);
-  });
+function copyAndClose(){
+  navigator.clipboard.writeText(location.href).then(()=>{
+    const btn=document.getElementById('copy-link-btn')||document.getElementById('copy-link-btn-m');
+    if(btn){btn.textContent='✅ הקישור הועתק!';btn.style.background='#22c55e';btn.style.color='#000';}
+    setTimeout(()=>{try{window.close();}catch{}},800);
+  }).catch(()=>{prompt('העתק את הקישור:',location.href);});
 }
 
 /* ── ENTRY ── */
