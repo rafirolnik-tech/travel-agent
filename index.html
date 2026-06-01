@@ -809,13 +809,22 @@ tr:hover td{background:#f8fafc}
             <input type="hidden" id="flight-dest" value="">
           </div>
         </div>
+        <!-- One-way / Round-trip toggle -->
+        <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:10px;overflow:hidden">
+          <button id="trip-roundtrip" class="loc-mode-btn active" onclick="setTripType('round')" type="button">
+            🔄 הלוך-חזור
+          </button>
+          <button id="trip-oneway" class="loc-mode-btn" onclick="setTripType('oneway')" type="button">
+            ➡️ הלוך בלבד
+          </button>
+        </div>
         <div class="frow">
           <div class="fwrap">
             <label class="flabel">תאריך יציאה</label>
             <input type="date" id="flight-depart">
           </div>
-          <div class="fwrap">
-            <label class="flabel">תאריך חזרה (אופציונלי)</label>
+          <div class="fwrap" id="return-date-wrap">
+            <label class="flabel">תאריך חזרה</label>
             <input type="date" id="flight-return"
               onchange="_scrollNext(document.getElementById('flight-adults')?.parentElement,150)">
           </div>
@@ -2490,6 +2499,14 @@ window.addEventListener('DOMContentLoaded',()=>{
     if(inp) inp.value=`${tlv.he} (TLV)`;
   }
 },true);
+
+function setTripType(type){
+  const isRound=type==='round';
+  document.getElementById('trip-roundtrip').classList.toggle('active',isRound);
+  document.getElementById('trip-oneway').classList.toggle('active',!isRound);
+  document.getElementById('return-date-wrap').style.display=isRound?'':'none';
+  if(!isRound) document.getElementById('flight-return').value='';
+}
 
 /* ── FLIGHT SEARCH ── */
 function doFlightSearch(){
