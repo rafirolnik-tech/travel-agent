@@ -1089,8 +1089,18 @@ function chooseDesktop(){
 function copyAndClose(){
   navigator.clipboard.writeText(location.href).then(()=>{
     const btn=document.getElementById('copy-link-btn')||document.getElementById('copy-link-btn-m');
-    if(btn){btn.textContent='✅ הקישור הועתק!';btn.style.background='#22c55e';btn.style.color='#000';}
-    setTimeout(()=>{try{window.close();}catch{}},800);
+    if(btn){btn.textContent='✅ הועתק! סוגר...';btn.style.background='#22c55e';btn.style.color='#000';}
+    // Try to close immediately
+    try{window.close();}catch{}
+    // If still open after 600ms — browser blocked it, show manual instruction
+    setTimeout(()=>{
+      if(!window.closed){
+        if(btn){
+          btn.textContent='✅ הועתק — סגור את הכרטיסייה ידנית';
+          btn.style.fontSize='14px';
+        }
+      }
+    },600);
   }).catch(()=>{prompt('העתק את הקישור:',location.href);});
 }
 
