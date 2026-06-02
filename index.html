@@ -1862,27 +1862,31 @@ function getAttrChildrenAges(){
 }
 
 /* ── MULTI-CITY UPSELL ── */
+let _pendingMultiCity=null; // candidate city — only confirmed when user clicks "כן"
+
 function checkMultiCityContext(){
+  attrMultiCity=null; // always reset — user must explicitly confirm
   const cities=JSON.parse(sessionStorage.getItem('searched_cities')||'[]');
   const currentCity=ssState.city.value;
   const others=cities.filter(c=>c.city!==currentCity && c.city);
   const banner=document.getElementById('multi-city-banner');
   if(!banner)return;
   if(others.length>0){
-    attrMultiCity=others[0];
+    _pendingMultiCity=others[0]; // store as candidate only
     document.getElementById('multi-city-name').textContent=others[0].city;
     banner.style.display='';
   } else {
     banner.style.display='none';
-    attrMultiCity=null;
+    _pendingMultiCity=null;
   }
 }
 function addMultiCity(){
+  attrMultiCity=_pendingMultiCity; // only NOW confirm the additional city
   document.getElementById('multi-city-banner').style.display='none';
-  // attrMultiCity stays set — doAttractionSearch will include it
 }
 function dismissMultiCity(){
   attrMultiCity=null;
+  _pendingMultiCity=null;
   document.getElementById('multi-city-banner').style.display='none';
 }
 
