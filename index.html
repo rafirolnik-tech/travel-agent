@@ -959,6 +959,7 @@ tr:hover td{background:#f8fafc}
         <div class="stitle">🏷️ קטגוריות (בחר יותר מאחת)</div>
         <div class="cat-chips">
           <button class="cat-chip active" data-cat="general"   onclick="toggleCatChip(this,'general')">🗺️ הכל</button>
+          <button class="cat-chip" data-cat="parks"    onclick="toggleCatChip(this,'parks')" style="font-weight:800">🎢 פארקים</button>
           <button class="cat-chip" data-cat="extreme"  onclick="toggleCatChip(this,'extreme')" style="font-weight:800">🔥 אקסטרים</button>
           <button class="cat-chip" data-cat="food"     onclick="toggleCatChip(this,'food')">🍜 אוכל</button>
           <button class="cat-chip" data-cat="culture"  onclick="toggleCatChip(this,'culture')">🏛️ תרבות</button>
@@ -1923,7 +1924,7 @@ function doAttractionSearch(){
   // Show search summary
   const dbg=document.getElementById('search-debug');
   if(dbg){
-    const catLabel=[...attrCats].map(c=>({'general':'הכל','food':'אוכל','culture':'תרבות','nature':'טבע','shopping':'קניות','nightlife':'לילה','adventure':'הרפתקאות'}[c]||c)).join(', ');
+    const catLabel=[...attrCats].map(c=>({'general':'הכל','parks':'פארקים','food':'אוכל','culture':'תרבות','nature':'טבע','shopping':'קניות','nightlife':'לילה','extreme':'אקסטרים'}[c]||c)).join(', ');
     const purposeLabel={'general':'סיור כללי','family':'משפחה','couple':'זוגי','solo':'סולו'}[attrTripPurpose]||attrTripPurpose;
     dbg.innerHTML=`
       <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:10px;letter-spacing:2px;text-transform:uppercase">מה אני מחפש עכשיו</div>

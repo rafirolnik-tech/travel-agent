@@ -916,7 +916,9 @@ def search_flights_stream():
 _AGE_RULES = [
     (['night club','nightclub',' bar','bar,','bar.','casino','gambling','adult entertainment'], '18+', '🔞'),
     (['children museum',"children's museum",'kids museum','playground','family entertainment'], 'לילדים', '👶'),
-    (['theme park','amusement park','water park','waterpark','funfair'], 'כל הגילאים', '🎢'),
+    (['theme park','amusement park','water park','waterpark','funfair',
+      'disneyland','disney','universal studios','legoland','eurodisnee','eurodisney',
+      'roller coaster','rollercoaster','fun park','adventure park'], 'כל הגילאים', '🎢'),
     (['zoo','aquarium','safari','wildlife'], 'כל הגילאים', '🦁'),
     (['hiking','trekking','zip line','bungee','rock climbing','extreme'], '8+', '🥾'),
     (['museum','gallery','palace','castle','cathedral','temple','shrine','mosque','church'], 'כל הגילאים', '🏛️'),
@@ -1115,6 +1117,13 @@ _EXTREME_PRICE = {
     'horse riding': 35, 'horseback': 35,
     'escape room': 20,
     'go kart': 25, 'karting': 25,
+    'disneyland': 110, 'disney': 110,
+    'universal studios': 100, 'universal': 100,
+    'legoland': 75,
+    'water park': 40, 'waterpark': 40,
+    'theme park': 65, 'amusement park': 55,
+    'roller coaster': 50, 'rollercoaster': 50,
+    'adventure park': 45,
 }
 
 def _extreme_price(title: str, desc: str) -> int:
@@ -1173,12 +1182,14 @@ def search_attractions_city(api_key: str, city: str, country: str,
 
     categories = categories or ['general']
     is_extreme = 'extreme' in categories
+    is_parks   = 'parks'   in categories
 
     # Build query — always include city+country for global accuracy
     dest = f"{city}, {country}" if country else city
 
-    if is_extreme:
-        # Extreme-specific query yields adventure operators
+    if is_parks:
+        query = f'theme parks amusement parks water parks family entertainment {dest}'
+    elif is_extreme:
         query = f'extreme sports adventure activities {dest}'
     else:
         purpose_map = {
