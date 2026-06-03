@@ -1032,14 +1032,18 @@ tr:hover td{background:#f8fafc}
     <span class="results-heading" id="results-title">תוצאות</span>
   </div>
   <div class="results-content">
-    <div id="best-deal-card"></div>
-    <div id="search-debug" style="display:none;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:20px;padding:28px 32px;margin-bottom:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);direction:rtl;text-align:right;color:#fff"></div>
-    <div id="progress-section" style="display:none">
-      <h3>מצב חיפוש לפי מדינה</h3>
+    <!-- 1. SEARCH SUMMARY — first thing user sees -->
+    <div id="search-debug" style="display:none;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:20px;padding:24px 28px;box-shadow:0 8px 32px rgba(0,0,0,.2);direction:rtl;text-align:right;color:#fff"></div>
+    <!-- 2. PROGRESS — where did we search -->
+    <div id="progress-section" style="display:none;background:#fff;border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)">
+      <h3 style="font-size:13px;font-weight:600;color:var(--mid);margin-bottom:12px">מדינות שנחפשו:</h3>
       <div id="progress-grid"></div>
     </div>
+    <!-- 3. BEST DEAL — after user understands the search context -->
+    <div id="best-deal-card"></div>
+    <!-- 4. ALL RESULTS -->
     <div id="results-table-section" style="display:none">
-      <h3>כל התוצאות — ממוינות לפי מחיר</h3>
+      <h3 style="font-size:14px;font-weight:600;color:var(--mid);margin-bottom:14px">כל התוצאות — ממוינות לפי מחיר</h3>
       <div id="results-table-wrap"></div>
     </div>
   </div>
@@ -2336,26 +2340,34 @@ function doHotelSearch(){
   showResultsPage('hotel');initPG(geoList);
   const body={api_key:apiKey,query:p.query,check_in:p.ci,check_out:p.co,
     adults:p.adults,children_ages:getChildrenAges(),min_stars:stars,max_budget:p.budget,countries:geoList};
-  // Search summary card
+  // Search summary card — destination first, then details
   const dbg=document.getElementById('search-debug');
   if(dbg){
     const nights=_nightCount(p.ci,p.co);
-    const starsLbl=stars>0?`${'★'.repeat(stars)} ומעלה`:'כל הכוכבים';
-    const budgetLbl=p.budget>0?`עד $${p.budget} ללילה`:'ללא הגבלת תקציב';
+    const starsLbl=stars>0?'★'.repeat(stars)+' ומעלה':'ללא הגבלת כוכבים';
+    const budgetLbl=p.budget>0?`עד $${p.budget}/לילה`:'ללא הגבלת תקציב';
     const guestAges=getChildrenAges();
-    const guestLbl=`${p.adults} מבוגרים${guestAges.length?` + ${guestAges.length} ילדים`:''}`;
+    const childrenLbl=guestAges.length?` + ${guestAges.length} ילדים${guestAges.length?' (גילאים: '+guestAges.join(', ')+')':''}` :'';
+    const guestLbl=`${p.adults} מבוגרים${childrenLbl}`;
+    const countryLbl=ssState.country.label||'';
+    const cityLbl=ssState.city.label||'';
+    const nbhLbl=selectedNbhs.length>0?selectedNbhs.map(n=>n.he).join(' + '):'כל העיר';
+    const chip=(icon,text)=>`<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;color:#fff"><span>${icon}</span><span>${text}</span></div>`;
     dbg.innerHTML=`
-      <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:10px;letter-spacing:2px;text-transform:uppercase">מה אני מחפש עכשיו</div>
-      <div style="font-size:clamp(24px,4vw,42px);font-weight:900;color:#fff;margin-bottom:16px;line-height:1.1">${p.query}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px">
-        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">📅 ${p.ci} → ${p.co} <span style="font-weight:400;opacity:.7">(${nights} לילות)</span></div>
-        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">👤 ${guestLbl}</div>
-        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">⭐ ${starsLbl}</div>
-        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">💰 ${budgetLbl}</div>
-        <div style="background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">🌍 חיפוש גיאו-מחיר: ${geoList.map(c=>(c.match(/[\u{1F1E0}-\u{1F1FF}]{2}/u)||[''])[0]+' '+c.replace(/[\u{1F1E0}-\u{1F1FF}]{2}/gu,'').trim()).join(' + ')}</div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">מה חיפשתי</div>
+
+      <div style="font-size:clamp(20px,3.5vw,32px);font-weight:900;color:#fff;margin-bottom:4px;line-height:1.2">${esc(cityLbl||countryLbl)}</div>
+      ${countryLbl&&cityLbl?`<div style="font-size:14px;color:rgba(255,255,255,.55);margin-bottom:4px">${esc(countryLbl)}</div>`:''}
+      <div style="font-size:14px;color:#6366f1;font-weight:700;margin-bottom:20px">📍 ${esc(nbhLbl)}</div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:16px">
+        ${chip('📅',`${p.ci} → ${p.co} · ${nights} לילות`)}
+        ${chip('👥',guestLbl)}
+        ${chip('⭐',starsLbl)}
+        ${chip('💰',budgetLbl)}
       </div>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:rgba(255,255,255,.45);line-height:1.6">
-        🔍 נתונים מ-<b style="color:rgba(255,255,255,.6)">Google Hotels API</b> בזמן אמת · לחיצה על הכפתור פותחת את עמוד המלון ב-Google Hotels עם כל הפלטפורמות ומחיר עדכני לתאריכים שלך · המחיר המוצג כאן הוא המחיר הנמוך ביותר שנמצא בעת החיפוש — יכול להשתנות
+      <div style="font-size:11px;color:rgba(255,255,255,.35);border-top:1px solid rgba(255,255,255,.1);padding-top:10px">
+        Google Hotels API · מחירים בזמן אמת · עשויים להשתנות
       </div>`;
     dbg.style.display='block';
   }
