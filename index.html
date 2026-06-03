@@ -2202,19 +2202,25 @@ function renderAttractionCard(a, city, broadened, wrap, tickets, childrenAges){
     'Bali','Bangkok','Phuket','Tokyo','Kyoto','Seoul','Krabi','Koh Samui'].some(c=>
       city.toLowerCase().includes(c.toLowerCase()) || ssState.country.value.includes(c));
   const klookUrl  = `https://www.klook.com/en-US/search/?query=${encodeURIComponent(a.name+' '+city)}`;
+  const kkdayUrl  = `https://www.kkday.com/en/search?keyword=${encodeURIComponent(a.name+' '+city)}`;
   const viatorUrl = `https://www.viator.com/search/${encodeURIComponent(city)}?text=${encodeURIComponent(a.name)}`;
+  const gygUrl    = `https://www.getyourguide.com/s/?q=${encodeURIComponent(a.name+' '+city)}`;
   const bookUrl   = hasActivity
-    ? (isAsiaCity ? klookUrl : viatorUrl)
+    ? (isAsiaCity ? klookUrl : gygUrl)
     : (a.website || a.maps_link || `https://www.google.com/maps/search/${encodeURIComponent(a.name+' '+city)}`);
   const bookLabel = hasActivity
-    ? (isAsiaCity ? '🟡 קנה כרטיס ב-Klook (זול יותר)' : '🎟️ קנה כרטיס ב-Viator')
+    ? (isAsiaCity ? '🟡 קנה ב-Klook (זול יותר)' : '🎟️ קנה ב-GetYourGuide')
     : (a.website ? '🌐 לאתר הרשמי' : '🗺️ ראה ב-Google Maps');
   const bookStyle = hasActivity
-    ? (isAsiaCity ? 'background:#ff5722;color:#fff' : 'background:#ff6600;color:#fff')
+    ? (isAsiaCity ? 'background:#ff5722;color:#fff' : 'background:#00aa6c;color:#fff')
     : 'background:#1d4ed8;color:#fff';
-  // Secondary link: Viator as alternative for Asia
-  const altUrl   = isAsiaCity && hasActivity ? viatorUrl : null;
-  const altLabel = isAsiaCity && hasActivity ? 'גם ב-Viator ↗' : null;
+  // Secondary + tertiary links for Asia
+  const altLinks = isAsiaCity && hasActivity
+    ? [{url:kkdayUrl,label:'גם ב-KKday ↗',bg:'#e65100'}
+      ,{url:viatorUrl,label:'גם ב-Viator ↗',bg:'#ff6600'}]
+    : hasActivity ? [{url:viatorUrl,label:'גם ב-Viator ↗',bg:'#ff6600'}] : [];
+  const altUrl   = altLinks[0]?.url||null;
+  const altLabel = altLinks[0]?.label||null;
 
   // Tooltip content for bundle pill
   const tipLines = [];
@@ -2289,11 +2295,10 @@ function renderAttractionCard(a, city, broadened, wrap, tickets, childrenAges){
          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
         ${bookLabel}${midPrice>0&&hasActivity?' →':''}
       </a>
-      <!-- Secondary link for Asia: also show Viator -->
-      ${altUrl?`<a href="${altUrl}" target="_blank" rel="noopener"
-         style="display:block;text-align:center;background:#fff3e0;color:#e65100;border-radius:10px;padding:8px;font-size:12px;font-weight:700;text-decoration:none;margin-top:6px;transition:opacity .15s"
-         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">${altLabel}</a>`
-      :''}
+      <!-- Secondary links -->
+      ${altLinks.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener"
+         style="display:block;text-align:center;background:${l.bg};color:#fff;border-radius:10px;padding:8px;font-size:12px;font-weight:700;text-decoration:none;margin-top:6px;opacity:.9;transition:opacity .15s"
+         onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.9'">${esc(l.label)}</a>`).join('')}
     </div>`;
 
   // Bundle checkbox
@@ -2803,7 +2808,15 @@ function renderHotelsCards(rows, actualNights){
             <div class="hcard-price-total">${esc(r.total_price)}<br><span style="font-size:11px">${nightsLabel}</span></div>
           </div>
         </div>
-        <a class="hcard-cta" href="${esc(lnk.url)}" target="_blank" rel="noopener">השווה מחירים ↗</a>
+        <a class="hcard-cta" href="${esc(lnk.url)}" target="_blank" rel="noopener">📊 השווה ב-Google Hotels ↗</a>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <a href="https://www.agoda.com/search?q=${encodeURIComponent(r.hotel_name)}" target="_blank" rel="noopener"
+             style="flex:1;text-align:center;padding:8px 4px;background:#e51837;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none">Agoda</a>
+          <a href="https://www.trip.com/hotels/list?keyword=${encodeURIComponent(r.hotel_name)}" target="_blank" rel="noopener"
+             style="flex:1;text-align:center;padding:8px 4px;background:#00a2e0;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none">Trip.com</a>
+          <a href="https://www.booking.com/search.html?ss=${encodeURIComponent(r.hotel_name)}" target="_blank" rel="noopener"
+             style="flex:1;text-align:center;padding:8px 4px;background:#003580;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none">Booking</a>
+        </div>
       </div>`;
     grid.appendChild(card);
     const delay=Math.min(i,7)*60;
