@@ -1202,28 +1202,26 @@ def search_attractions_city(api_key: str, city: str, country: str,
         if children_ages and trip_purpose != 'family':
             query = f'family activities {dest}'
 
-    # Search from each GL, merge by title (dedup), keep best rating
+    # Build secondary complementary query for more variety
+    secondary_query = f'things to do {dest}'
+    if is_parks:
+        secondary_query = f'entertainment family fun attractions {dest}'
+    elif is_extreme:
+        secondary_query = f'adventure outdoor sports {dest}'
+
+    # All queries to run (primary + secondary)
+    queries = [query, secondary_query]
+
+    # Search from each GL with each query, merge by title (dedup), keep best rating
     merged: dict = {}  # title.lower() → raw result
     broadened = False
+    MIN_RESULTS = 4
 
-    for gl in search_gls:
-        results, err = _call(query, gl)
-        if err:
-            print(f"  [gl={gl}] error: {err}")
-            continue
-        if not results and gl == search_gls[0]:
-            # First GL failed — retry with simpler query
-            broad = f'attractions {dest}'
-            results, _ = _call(broad, gl)
-            if results: broadened = city + ' (חיפוש מורחב)'
-        if not results:
-            continue
-        print(f"  [gl={gl}] {len(results)} results")
-        for p in results:
+    def _merge(results_list):
+        for p in results_list:
             key = p.get('title','').strip().lower()
             if not key: continue
             existing = merged.get(key)
-            # Keep result with better rating or first found
             if not existing:
                 merged[key] = p
             else:
@@ -1232,10 +1230,31 @@ def search_attractions_city(api_key: str, city: str, country: str,
                 if r_new > r_old:
                     merged[key] = p
 
+    for q in queries:
+        for gl in search_gls:
+            results, err = _call(q, gl)
+            if err:
+                print(f"  [gl={gl}] error: {err}")
+                continue
+            if not results:
+                continue
+            print(f"  [gl={gl}] q={q[:40]!r} → {len(results)} results")
+            _merge(results)
+
+    # If still fewer than MIN_RESULTS — broaden with generic query
+    if len(merged) < MIN_RESULTS:
+        broad = f'popular places to visit {dest}'
+        for gl in search_gls[:1]:  # just destination GL
+            results, _ = _call(broad, gl)
+            if results:
+                _merge(results)
+                broadened = city + ' (חיפוש מורחב)'
+                print(f"  broadened → {len(merged)} total")
+
     if not merged:
         return {'status': 'no_results', 'city': city, 'error': 'לא נמצאו אטרקציות ביעד זה'}
 
-    enriched = _enrich_attractions(list(merged.values())[:15])
+    enriched = _enrich_attractions(list(merged.values())[:25])
     print(f"[attractions] {city} → {len(enriched)} unique results (broadened={broadened})")
     return {'status': 'found', 'city': city, 'attractions': enriched, 'broadened': broadened}
 
