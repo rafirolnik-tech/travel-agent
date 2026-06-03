@@ -784,28 +784,8 @@ tr:hover td{background:#f8fafc}
       </div>
     </div>
 
-    <!-- BUDGET SLIDER — above everything else -->
-    <div id="budget-card" class="scard" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="stitle" style="margin:0">💰 תקציב ללילה</div>
-        <div id="budget-display" style="font-size:22px;font-weight:800;color:#6366f1">ללא הגבלה</div>
-      </div>
-      <input type="range" id="budget-slider" min="0" max="5000" step="5" value="0"
-             oninput="onBudgetSlide(this.value)"
-             style="width:100%;accent-color:#6366f1;cursor:pointer;height:6px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)">
-        <span>ללא הגבלה</span>
-        <span style="color:#6366f1;font-size:12px" id="budget-hint"></span>
-        <span>$5,000</span>
-      </div>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:13px;color:var(--dim)">או הקלד:</span>
-        <input type="number" id="hotel-budget" placeholder="ללא הגבלה" min="0" max="5000"
-               oninput="onBudgetInput(this.value)"
-               style="width:110px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;color:#6366f1">
-        <span style="font-size:13px;color:var(--dim)">$/לילה</span>
-      </div>
-    </div>
+    <!-- hidden anchor for budget-card (kept for JS compatibility) -->
+    <div id="budget-card" style="display:none"></div>
 
     <!-- NEIGHBORHOODS CARD — shown after city selected -->
     <div id="neighborhoods-card" class="scard" style="display:none">
@@ -814,10 +794,12 @@ tr:hover td{background:#f8fafc}
       <div id="nbh-options" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
 
-    <!-- HOTEL FORM -->
+    <!-- HOTEL FORM — unified: dates + guests + budget + stars -->
     <div id="form-hotel" class="scard">
       <div class="stitle">פרטי מלון</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Dates -->
         <div class="frow">
           <div class="fwrap">
             <label class="flabel">צ'ק-אין</label>
@@ -825,10 +807,12 @@ tr:hover td{background:#f8fafc}
           </div>
           <div class="fwrap">
             <label class="flabel">צ'ק-אאוט</label>
-            <input type="date" id="hotel-checkout"
-              onchange="_onCheckoutChange()">
+            <input type="date" id="hotel-checkout" onchange="_onCheckoutChange()">
           </div>
         </div>
+        <div id="long-stay-warn-inline" style="display:none;background:#fef3c7;border:1.5px solid #d97706;border-radius:10px;padding:10px 13px;font-size:13px;color:#92400e;line-height:1.6"></div>
+
+        <!-- Guests -->
         <div class="frow">
           <div class="fwrap">
             <label class="flabel">מבוגרים</label>
@@ -844,7 +828,6 @@ tr:hover td{background:#f8fafc}
           <div id="children-ages-inputs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px"></div>
           <div style="font-size:11px;color:var(--dim);margin-top:6px">⚠️ גיל 16+ נספר כמבוגר בחיפוש</div>
         </div>
-        <!-- FAMILY QUESTION — shown when children > 0 -->
         <div id="family-q" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px">
           <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:10px">👨‍👩‍👧 אתם נוסעים עם ילדים — מחפשים מלון מותאם למשפחות?</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -852,8 +835,37 @@ tr:hover td{background:#f8fafc}
             <button id="fam-no"  class="fam-btn"        onclick="setFamilyPref('no')">לא חשוב</button>
           </div>
         </div>
+
+        <div style="height:1px;background:var(--border);margin:2px 0"></div>
+
+        <!-- Budget -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <label class="flabel" style="font-size:13px">💰 תקציב ללילה</label>
+            <div id="budget-display" style="font-size:20px;font-weight:800;color:#6366f1">ללא הגבלה</div>
+          </div>
+          <input type="range" id="budget-slider" min="0" max="5000" step="5" value="0"
+                 oninput="onBudgetSlide(this.value)"
+                 style="width:100%;accent-color:#6366f1;cursor:pointer;height:6px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:8px">
+            <span>ללא הגבלה</span>
+            <span style="color:#6366f1;font-size:12px" id="budget-hint"></span>
+            <span>$5,000</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;color:var(--dim)">או הקלד:</span>
+            <input type="number" id="hotel-budget" placeholder="ללא הגבלה" min="0" max="5000"
+                   oninput="onBudgetInput(this.value)"
+                   style="width:110px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;color:#6366f1">
+            <span style="font-size:13px;color:var(--dim)">$/לילה</span>
+          </div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:2px 0"></div>
+
+        <!-- Stars -->
         <div class="fwrap">
-          <label class="flabel">כוכבים מינימום</label>
+          <label class="flabel">⭐ כוכבים מינימום</label>
           <div class="stars-row">
             <button class="star-btn active" data-stars="0" onclick="selectStars(0)">הכל</button>
             <button class="star-btn" data-stars="3" onclick="selectStars(3)">3★</button>
@@ -861,6 +873,7 @@ tr:hover td{background:#f8fafc}
             <button class="star-btn" data-stars="5" onclick="selectStars(5)">5★</button>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -1324,7 +1337,6 @@ function openDrawer(m){
   document.getElementById('form-hotel').style.display      =m==='hotel'      ?'':'none';
   document.getElementById('form-flight').style.display     =m==='flight'     ?'':'none';
   document.getElementById('form-attraction').style.display =m==='attraction' ?'':'none';
-  document.getElementById('budget-card').style.display     =m==='hotel'      ?'':'none';
   document.getElementById('geo-card').style.display        =m==='flight'     ?'none':'';
   document.getElementById('neighborhoods-card').style.display=m==='flight'   ?'none':'';
   document.getElementById('city-label').textContent=m==='hotel'?'עיר יעד':'עיר';
@@ -1393,19 +1405,14 @@ function _onCheckoutChange(){
   _scrollNext(document.getElementById('hotel-adults')?.closest('.frow')?.parentElement||document.getElementById('hotel-adults')?.parentElement, 200);
   const ci=document.getElementById('hotel-checkin').value;
   const co=document.getElementById('hotel-checkout').value;
-  let warn=document.getElementById('long-stay-warn');
-  if(ci&&co){
+  const warn=document.getElementById('long-stay-warn-inline');
+  if(ci&&co&&warn){
     const nights=Math.round((new Date(co)-new Date(ci))/86400000);
     if(nights>28){
-      if(!warn){
-        warn=document.createElement('div');warn.id='long-stay-warn';
-        warn.style.cssText='background:#fef3c7;border:1.5px solid #d97706;border-radius:10px;padding:10px 14px;font-size:13px;color:#92400e;margin-top:8px;line-height:1.6';
-        document.getElementById('hotel-checkout').closest('.frow').after(warn);
-      }
-      warn.innerHTML=`⚠️ <b>שהייה של ${nights} לילות</b> — Google Hotels API לא תומך בחיפוש מעל ~28 לילות ולא יחזיר תוצאות. <br>הסוכן יחפש מחירים ל-<b>7 לילות</b> ראשונים כדי להשוות.`;
+      warn.innerHTML=`⚠️ <b>שהייה של ${nights} לילות</b> — הסוכן יחפש ל-7 לילות ראשונים להשוואת מחירים.`;
       warn.style.display='';
     } else {
-      if(warn) warn.style.display='none';
+      warn.style.display='none';
     }
   }
 }
