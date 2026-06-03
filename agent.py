@@ -134,11 +134,16 @@ def search_hotel_single(api_key, query, check_in, check_out, adults,
 
         for p in properties:
             stars = _extract_stars(p)
-            # Soft star filter: only exclude when we KNOW the rating is below min.
-            # Hotels without hotel_class (stars=None) are NOT excluded — they may be quality hotels
-            # that Google hasn't tagged yet.
-            if min_stars > 0 and stars is not None and stars < min_stars:
-                continue
+            # Star filter strategy:
+            # - min_stars >= 4: strict — require known star rating (None = unclassified hostel/guesthouse)
+            # - min_stars = 3:  soft  — allow unrated hotels (may be boutique/quality unlabeled)
+            # - min_stars = 0:  none  — show all
+            if min_stars >= 4:
+                if stars is None or stars < min_stars:
+                    continue  # strict: unrated hotels excluded for 4★/5★ searches
+            elif min_stars == 3:
+                if stars is not None and stars < min_stars:
+                    continue  # soft: only exclude if KNOWN to be below minimum
 
             price = parse_price(p.get('rate_per_night', {}).get('lowest'))
             if price == float('inf'):
