@@ -801,13 +801,13 @@ def search_hotels_stream():
     # Google Hotels API doesn't return results for stays > ~28 nights.
     # When the stay is longer, search a representative 7-night window instead.
     MAX_NIGHTS = 28
-    from datetime import datetime as _dtnow, timedelta
+    from datetime import timedelta
     actual_nights = _calc_nights(check_in, check_out)
     search_check_in  = check_in
     search_check_out = check_out
     long_stay_note   = None
     if actual_nights > MAX_NIGHTS:
-        search_check_out = (_dtnow.strptime(check_in, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d')
+        search_check_out = (_dt.strptime(check_in, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d')
         long_stay_note = actual_nights
         print(f"[long-stay] {actual_nights} nights → searching 7-night window {search_check_in}→{search_check_out}")
 
@@ -862,6 +862,11 @@ def search_hotels_stream():
         if not hotel_map and near_budget_map:
             near_list = sorted(near_budget_map.values(), key=lambda x: x['price_num'])
             yield f"data: {json.dumps({'status':'suggest_near_budget','hotels':near_list}, ensure_ascii=False)}\n\n"
+
+        # Emit best hotel for the hero card
+        if hotel_map:
+            best = min(hotel_map.values(), key=lambda x: x['price_num'])
+            yield f"data: {json.dumps({'status':'best','best':best}, ensure_ascii=False)}\n\n"
 
         yield f"data: {json.dumps({'status': 'done'}, ensure_ascii=False)}\n\n"
 
@@ -1155,7 +1160,9 @@ def search_attractions_city(api_key: str, city: str, country: str,
                              categories: list = None) -> dict:
     """Fetch attractions — searches from destination GL + India for cheapest operators."""
     dest_gl = COUNTRY_GL.get(country, 'us')
-    search_gls = list(dict.fromkeys([dest_gl, 'in']))  # destination first, then India (dedup)
+    # For google_maps (local results), geo-pricing doesn't apply — only destination GL matters
+    # India GL adds no value for local attraction searches and wastes API credits
+    search_gls = [dest_gl]
 
     def _call(q, gl='us'):
         params = {
@@ -1236,6 +1243,8 @@ def search_attractions_city(api_key: str, city: str, country: str,
                     merged[key] = p
 
     for q in queries:
+        if len(merged) >= 20:
+            break  # enough results — skip remaining queries to save API credits
         for gl in search_gls:
             results, err = _call(q, gl)
             if err:

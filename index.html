@@ -1347,6 +1347,7 @@ function openDrawer(m){
 function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawer-overlay').classList.remove('visible');
+  _pendingMultiCity=null;
   // If results page is visible but has no hotel/flight cards, go back to landing
   const rp=document.getElementById('results-page');
   if(!rp.classList.contains('hidden')){
@@ -1748,7 +1749,7 @@ async function startSearch(){
     if(new Date(ci)<new Date(today())){alert('תאריך הצ\'ק-אין לא יכול להיות בעבר');return}
     // Confirm long stays > 7 nights before searching
     if(nights>7){
-      const confirmed=await _confirmLongStay(nights);
+      const confirmed=await _confirmLongStay(nights,query);
       if(!confirmed)return;
     }
     const adultsRaw=+document.getElementById('hotel-adults').value;
@@ -1771,7 +1772,7 @@ async function startSearch(){
   }
 }
 
-function _confirmLongStay(nights){
+function _confirmLongStay(nights,query){
   return new Promise(resolve=>{
     // Remove any existing confirm modal
     const existing=document.getElementById('long-stay-modal');
@@ -1832,6 +1833,9 @@ function toggleCatChip(btn,cat){
     document.querySelectorAll('.cat-chip').forEach(b=>b.classList.toggle('active',b.dataset.cat==='general'));
     return;
   }
+  // parks and extreme are mutually exclusive
+  if(cat==='parks'&&attrCats.has('extreme')){attrCats.delete('extreme');document.querySelector('[data-cat="extreme"]')?.classList.remove('active');}
+  if(cat==='extreme'&&attrCats.has('parks')){attrCats.delete('parks');document.querySelector('[data-cat="parks"]')?.classList.remove('active');}
   attrCats.delete('general');
   document.querySelector('[data-cat="general"]')?.classList.remove('active');
   if(attrCats.has(cat)){attrCats.delete(cat);btn.classList.remove('active');}
@@ -2373,6 +2377,7 @@ function doHotelSearch(){
       foundHotels=sorted.length;
       renderHotelsCards(sorted,r.actual_nights);
     }
+    else if(r.status==='best'){showBest(r.best,'hotel');}
     else if(r.status==='suggest_near_budget'){
       foundHotels=r.hotels.length;
       showNearBudgetPrompt(r.hotels,body.max_budget);
@@ -2537,7 +2542,11 @@ function filterAirport(id){
   const q=document.getElementById(`ss-${id}-inp`).value.toLowerCase().trim();
   const list=document.getElementById(`ss-${id}-list`);
   _airportState[id].focusIdx=-1;
-  if(!q){list.classList.remove('open');return;}
+  if(!q){
+    list.classList.remove('open');
+    document.getElementById(`flight-${id==='origin'?'origin':'dest'}`).value='';
+    return;
+  }
   const matches=AIRPORTS.filter(a=>
     a.he.includes(q)||a.en.toLowerCase().includes(q)||a.iata.toLowerCase().includes(q)
   ).slice(0,8);
@@ -2761,6 +2770,8 @@ function renderHotelsCards(rows, actualNights){
   const cheapest=rows[0]?.price_num;
   const searchNights=rows[0]?.nights||1;
   const wrap=document.getElementById('results-table-wrap');
+  // Reset cheapest badge on every update — only cheapest card should have it
+  document.querySelectorAll('.hcard-cheapest-badge').forEach(b=>b.remove());
   const broadenBanner=window._broadenedFromNbh
     ?`<div style="background:#dbeafe;border:1.5px solid #93c5fd;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#1e3a8a">
         🔍 לא נמצאו מלונות ב-<b>${window._broadenedFromNbh}</b> — מציג תוצאות מכל ${ssState.city.label||'העיר'}
@@ -2771,7 +2782,7 @@ function renderHotelsCards(rows, actualNights){
   }
   const grid=document.getElementById('hcards-grid');
   rows.forEach((r,i)=>{
-    const keyAttr=r.hotel_name.toLowerCase().replace(/[^a-z0-9]/g,'-');
+    const keyAttr='h'+hashStr(r.hotel_name);
     const existing=grid.querySelector(`[data-hkey="${keyAttr}"]`);
     if(existing){existing.style.order=i;return;}
     const isCheapest=r.price_num===cheapest&&rows.length>1;
