@@ -1202,15 +1202,20 @@ def search_attractions_city(api_key: str, city: str, country: str,
         if children_ages and trip_purpose != 'family':
             query = f'family activities {dest}'
 
-    # Build secondary complementary query for more variety
+    # Build secondary + tertiary complementary queries for more variety
     secondary_query = f'things to do {dest}'
+    tertiary_query  = None
     if is_parks:
-        secondary_query = f'entertainment family fun attractions {dest}'
+        secondary_query = f'water park splash pool entertainment {dest}'
+        tertiary_query  = f'family activities kids {dest}'
     elif is_extreme:
         secondary_query = f'adventure outdoor sports {dest}'
+        tertiary_query  = f'outdoor activities excursions {dest}'
+    else:
+        tertiary_query  = f'popular places visit {dest}'
 
-    # All queries to run (primary + secondary)
-    queries = [query, secondary_query]
+    # All queries to run
+    queries = [q for q in [query, secondary_query, tertiary_query] if q]
 
     # Search from each GL with each query, merge by title (dedup), keep best rating
     merged: dict = {}  # title.lower() → raw result
