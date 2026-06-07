@@ -3528,7 +3528,21 @@ const VA = {
       stars:         this.answers.stars          || null,
       budget:        this.answers.budget         || null,
     };
-    this._showConfirm(this.parsed);
+    this._speakSummary(this.parsed, () => this._showConfirm(this.parsed));
+  },
+
+  _speakSummary(p, cb){
+    const parts = ['הנה סיכום הבקשה שלך.'];
+    if(p.city)            parts.push(`יעד: ${p.city.he}, ${p.city.countryHe}.`);
+    if(p.checkin)         parts.push(`צ'ק-אין: ${p.checkin.split('-').reverse().join(' ב')}.`);
+    if(p.checkout)        parts.push(`צ'ק-אאוט: ${p.checkout.split('-').reverse().join(' ב')}.`);
+    if(p.adults!=null)    parts.push(`${p.adults} מבוגרים.`);
+    if(p.children.length) parts.push(`ילדים בגילאים: ${p.children.map(c=>c.age).join(', ')}.`);
+    if(p.rooms)           parts.push(`${p.rooms} חדרים.`);
+    if(p.stars)           parts.push(`${p.stars} כוכבים.`);
+    if(p.budget)          parts.push(`תקציב עד ${p.budget} דולר ללילה.`);
+    parts.push('האם הכל נכון?');
+    this._speak(parts.join(' '), cb);
   },
 
   /* ── display value for a key ── */
