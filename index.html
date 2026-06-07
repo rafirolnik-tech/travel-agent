@@ -376,42 +376,81 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 #va-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 } /* end @media mobile */
 
-/* recording modal */
+/* recording modal — chat UI */
 #va-rec-modal{
   position:fixed;inset:0;z-index:820;
-  background:rgba(0,0,0,.8);backdrop-filter:blur(10px);
-  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(8px);
+  display:flex;align-items:flex-end;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .3s;
 }
 #va-rec-modal.open{opacity:1;pointer-events:all}
-.va-rec-card{
-  background:#0d0f1a;border-radius:28px;padding:40px 32px;
-  width:min(460px,92vw);text-align:center;
-  border:1px solid rgba(99,102,241,.35);
-  box-shadow:0 24px 72px rgba(0,0,0,.6);
+.va-chat-card{
+  background:#0d0f1a;border-radius:28px 28px 0 0;
+  width:min(520px,100vw);max-height:80vh;
+  display:flex;flex-direction:column;
+  border:1px solid rgba(99,102,241,.3);
+  box-shadow:0 -8px 40px rgba(0,0,0,.6);
 }
-.va-mic-ring{
-  width:90px;height:90px;border-radius:50%;
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
-  display:flex;align-items:center;justify-content:center;
-  font-size:38px;margin:0 auto 20px;
-  animation:va-ring 1.5s ease-in-out infinite;
+.va-chat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
 }
-@keyframes va-ring{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.5)}50%{box-shadow:0 0 0 18px rgba(99,102,241,0)}}
-.va-rec-status{font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#6366f1;margin-bottom:14px}
+.va-chat-agent-name{font-weight:700;font-size:15px;color:#a5b4fc}
+.va-chat-close{background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1}
+.va-chat-history{
+  flex:1;overflow-y:auto;padding:16px 16px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  min-height:90px;max-height:340px;
+}
+.va-bubble{max-width:90%;padding:11px 15px;border-radius:18px;font-size:15px;line-height:1.55;direction:rtl;word-break:break-word}
+.va-bubble-agent{
+  background:linear-gradient(135deg,rgba(99,102,241,.22),rgba(139,92,246,.18));
+  border:1px solid rgba(99,102,241,.35);color:#c7d2fe;
+  align-self:flex-start;border-bottom-right-radius:4px;
+}
+.va-bubble-user{
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);
+  color:#f1f5f9;align-self:flex-end;border-bottom-left-radius:4px;
+}
+.va-bubble-parsed{
+  background:rgba(34,197,94,.11);border:1px solid rgba(34,197,94,.28);
+  color:#86efac;align-self:flex-start;font-size:13px;padding:7px 13px;border-radius:12px;
+}
+.va-bubble-error{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+  color:#fca5a5;align-self:flex-start;font-size:13px;padding:7px 13px;border-radius:12px;
+}
+.va-input-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;background:rgba(255,255,255,.04);
+  border-top:1px solid rgba(255,255,255,.07);min-height:52px;flex-shrink:0;
+}
+.va-mic-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,.2);flex-shrink:0;transition:background .2s;
+}
+.va-mic-dot.active{
+  background:#ef4444;
+  animation:va-dot-pulse 1.2s ease-in-out infinite;
+}
+@keyframes va-dot-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
 .va-transcript{
-  min-height:90px;background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);border-radius:14px;
-  padding:14px 16px;font-size:15px;color:#fff;
-  line-height:1.65;text-align:right;direction:rtl;margin:0 0 20px;
+  flex:1;font-size:14px;color:#e2e8f0;direction:rtl;text-align:right;line-height:1.5;
 }
-.va-transcript.placeholder{color:rgba(255,255,255,.3);font-style:italic}
-.va-rec-stop{
-  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);
-  color:#fff;border-radius:14px;padding:13px 30px;
-  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;
+.va-transcript.placeholder{color:rgba(255,255,255,.28);font-style:italic}
+.va-step-controls{
+  display:flex;gap:10px;padding:10px 16px 18px;flex-shrink:0;
 }
-.va-rec-stop:hover{background:rgba(255,255,255,.18)}
+.va-skip-btn{
+  padding:11px 18px;background:rgba(255,255,255,.07);
+  border:1.5px solid rgba(255,255,255,.14);color:rgba(255,255,255,.55);
+  border-radius:12px;font-size:14px;cursor:pointer;font-family:inherit;
+}
+.va-next-btn{
+  flex:1;padding:13px;background:#4f46e5;color:#fff;
+  border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+}
 
 /* confirmation modal */
 #va-confirm-modal{
@@ -776,6 +815,12 @@ tr:hover td{background:#f8fafc}
     🔒 <span style="color:#ef4444;font-weight:800">חובה</span> לפתוח בחלון פרטי/אנונימי — אחרת Google יזהה אותך ותקבל מחירים גבוהים יותר
   </div>
 
+  <!-- Voice Agent button — mobile only -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin:18px 0 6px">
+    <button id="va-btn" onclick="VA.start()">🎙️ דבר עם הסוכן</button>
+    <div id="va-no-support" style="display:none;font-size:13px;color:#fca5a5">הדפדפן שלך לא תומך בהקלטה קולית — נסה Chrome</div>
+  </div>
+
   <div class="hero-cards" id="hero-cards">
 
     <!-- FLIGHT -->
@@ -819,22 +864,24 @@ tr:hover td{background:#f8fafc}
 
   </div>
 
-  <!-- Voice Agent button -->
-  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:-4px">
-    <button id="va-btn" onclick="VA.start()">🎙️ דבר עם הסוכן</button>
-    <div class="va-no-support" id="va-no-support" style="display:none">הדפדפן שלך לא תומך בהקלטה קולית — נסה Chrome</div>
-  </div>
 </div>
 
-<!-- ══ VOICE AGENT: Recording Modal ══ -->
+<!-- ══ VOICE AGENT: Chat Modal ══ -->
 <div id="va-rec-modal">
-  <div class="va-rec-card">
-    <div class="va-mic-ring">🎙️</div>
-    <div class="va-rec-status">מקשיב...</div>
-    <div class="va-transcript placeholder" id="va-transcript">
-      אמור: "פוקט תאילנד, 4 כוכבים, עד 100 דולר, 3 מבוגרים ילד בן 13..."
+  <div class="va-chat-card">
+    <div class="va-chat-header">
+      <span class="va-chat-agent-name">🤖 סוכן נסיעות חכם</span>
+      <button class="va-chat-close" onclick="VA.cancel()">✕</button>
     </div>
-    <button class="va-rec-stop" onclick="VA.stop()">⏹ סיים הקלטה</button>
+    <div class="va-chat-history" id="va-chat-history"></div>
+    <div class="va-input-row">
+      <div class="va-mic-dot" id="va-mic-dot"></div>
+      <div class="va-transcript placeholder" id="va-transcript">ממתין לשאלה...</div>
+    </div>
+    <div class="va-step-controls">
+      <button class="va-skip-btn" onclick="VA.skip()">דלג ⏭</button>
+      <button class="va-next-btn" onclick="VA.confirmStep()">✓ אישור</button>
+    </div>
   </div>
 </div>
 
@@ -3246,7 +3293,7 @@ function showNoResults(minStars,maxBudget){
 }
 
 /* ══════════════════════════════════════════════════════
-   VOICE AGENT
+   VOICE AGENT — conversational step-by-step
    ══════════════════════════════════════════════════════ */
 const VA = {
 
@@ -3312,8 +3359,22 @@ const VA = {
     'גנגנאם':'Gangnam','מיונגדונג':'Myeongdong','הונגדה':'Hongdae',
   },
 
+  /* ── conversation steps ── */
+  STEPS:[
+    {key:'city',         optional:false, q:'לאן תרצה לנסוע? אמור את שם העיר והמדינה'},
+    {key:'neighborhood', optional:true,  q:'באיזה אזור בעיר תרצה ללון? אם לא משנה — אמור "דלג"'},
+    {key:'checkin',      optional:false, q:'מה תאריך הצ׳ק-אין? לדוגמה: "22 ביוני"'},
+    {key:'checkout',     optional:false, q:'מה תאריך הצ׳ק-אאוט?'},
+    {key:'adults',       optional:false, q:'כמה מבוגרים נוסעים?'},
+    {key:'children',     optional:true,  q:'האם יש ילדים? אם כן — אמור כמה ומה הגילאים שלהם. אם לא — אמור "אין"'},
+    {key:'rooms',        optional:true,  q:'כמה חדרים תצטרך? חדר אחד או שני חדרים?'},
+    {key:'stars',        optional:true,  q:'כמה כוכבים? שלוש, ארבע, או חמש כוכבים?'},
+    {key:'budget',       optional:true,  q:'מה התקציב המקסימלי שלך ללילה — בדולרים?'},
+  ],
+
   /* ── state ── */
   recognition:null, transcript:'', parsed:null,
+  currentStep:0, answers:{},
 
   /* ── init ── */
   init(){
@@ -3325,7 +3386,7 @@ const VA = {
     }
     this.recognition = new SR();
     this.recognition.lang = 'he-IL';
-    this.recognition.continuous = true;
+    this.recognition.continuous = false;
     this.recognition.interimResults = true;
 
     this.recognition.onresult = e => {
@@ -3337,52 +3398,168 @@ const VA = {
       if(final) this.transcript += ' ' + final.trim();
       const display = (this.transcript+' '+interim).trim();
       const el = document.getElementById('va-transcript');
-      if(el){ el.textContent=display||''; el.classList.toggle('placeholder',!display); }
+      if(el){ el.textContent = display||'מקשיב... 🎙️'; el.classList.toggle('placeholder',!display); }
     };
 
-    this.recognition.onerror = e => { if(e.error!=='no-speech') this.stop(); };
-    this.recognition.onend  = () => { /* will stop manually or via button */ };
+    this.recognition.onerror = e => {
+      if(e.error !== 'no-speech') this._stopRec();
+    };
+    this.recognition.onend = () => {
+      document.getElementById('va-mic-dot')?.classList.remove('active');
+    };
   },
 
-  /* ── start ── */
+  /* ── open chat ── */
   start(){
     if(!this.recognition) return;
-    this.transcript='';
-    const el=document.getElementById('va-transcript');
-    el.textContent='אמור: "פוקט תאילנד, 4 כוכבים, עד 100 דולר, 3 מבוגרים ילד בן 13..."';
-    el.classList.add('placeholder');
+    this.answers = {};
+    this.transcript = '';
+    this.currentStep = 0;
+    document.getElementById('va-chat-history').innerHTML = '';
+    document.getElementById('va-transcript').textContent = 'ממתין לשאלה...';
+    document.getElementById('va-transcript').classList.add('placeholder');
     document.getElementById('va-rec-modal').classList.add('open');
-    document.getElementById('va-btn').classList.add('recording');
-    try{ this.recognition.start(); }catch(e){ this.recognition.stop(); setTimeout(()=>this.recognition.start(),200); }
+    setTimeout(() => this._runStep(0), 350);
   },
 
-  /* ── stop ── */
-  stop(){
-    try{ this.recognition.stop(); }catch(e){}
+  /* ── close ── */
+  cancel(){
+    this._stopRec();
+    speechSynthesis.cancel();
     document.getElementById('va-rec-modal').classList.remove('open');
-    document.getElementById('va-btn').classList.remove('recording');
+  },
+
+  /* ── run a step: speak question → record ── */
+  _runStep(i){
+    this.currentStep = i;
+    if(i >= this.STEPS.length){ this._finalize(); return; }
+    const step = this.STEPS[i];
+    this.transcript = '';
+    const el = document.getElementById('va-transcript');
+    el.textContent = 'מקשיב... 🎙️'; el.classList.add('placeholder');
+    this._addBubble('agent', step.q);
+    this._speak(step.q, () => this._startRec());
+  },
+
+  /* ── user taps ✓ ── */
+  confirmStep(){
+    this._stopRec();
+    speechSynthesis.cancel();
+    const step = this.STEPS[this.currentStep];
     const text = this.transcript.trim();
-    if(!text){ return; }
-    this.parsed = this._parse(text);
+    if(!text){ this.skip(); return; }
+
+    this._addBubble('user', text);
+
+    const val = this._parseKey(step.key, text);
+    this.answers[step.key] = val;
+
+    const empty = val===null || val===undefined || (Array.isArray(val) && val.length===0);
+    if(!empty){
+      this._addBubble('parsed', '✅ הבנתי: ' + this._displayVal(step.key, val));
+      setTimeout(() => this._runStep(this.currentStep+1), 650);
+    } else if(step.optional){
+      this._addBubble('parsed', '⏭ דולג...');
+      setTimeout(() => this._runStep(this.currentStep+1), 450);
+    } else {
+      this._addBubble('error', '🔄 לא הצלחתי להבין, נסה שוב');
+      setTimeout(() => {
+        this._speak(step.q, () => this._startRec());
+      }, 600);
+    }
+  },
+
+  /* ── user taps ⏭ ── */
+  skip(){
+    this._stopRec();
+    speechSynthesis.cancel();
+    this.answers[this.STEPS[this.currentStep].key] = null;
+    this._addBubble('parsed', '⏭ דולג...');
+    setTimeout(() => this._runStep(this.currentStep+1), 400);
+  },
+
+  /* ── speech synthesis ── */
+  _speak(text, cb){
+    if(!window.speechSynthesis){ cb&&cb(); return; }
+    speechSynthesis.cancel();
+    const clean = text.replace(/[🌍🏘️📅👥👶🚪⭐💰✅⏭🔄]/g,'');
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.lang = 'he-IL'; utt.rate = 1.05;
+    utt.onend = ()=>cb&&cb();
+    utt.onerror = ()=>cb&&cb();
+    speechSynthesis.speak(utt);
+  },
+
+  /* ── recording helpers ── */
+  _startRec(){
+    this.transcript = '';
+    document.getElementById('va-transcript').textContent = 'מקשיב... 🎙️';
+    document.getElementById('va-transcript').classList.add('placeholder');
+    document.getElementById('va-mic-dot').classList.add('active');
+    try{ this.recognition.start(); }catch(e){}
+  },
+  _stopRec(){
+    try{ this.recognition.stop(); }catch(e){}
+    document.getElementById('va-mic-dot')?.classList.remove('active');
+  },
+
+  /* ── chat bubbles ── */
+  _addBubble(type, text){
+    const hist = document.getElementById('va-chat-history');
+    const d = document.createElement('div');
+    d.className = `va-bubble va-bubble-${type}`;
+    d.textContent = text;
+    hist.appendChild(d);
+    hist.scrollTop = hist.scrollHeight;
+  },
+
+  /* ── finalize: assemble parsed + show confirm ── */
+  _finalize(){
+    document.getElementById('va-rec-modal').classList.remove('open');
+    this.parsed = {
+      raw: Object.entries(this.answers).map(([k,v])=>v?`${k}:${v}`:'').filter(Boolean).join(' '),
+      city:          this.answers.city          || null,
+      neighborhoods: this.answers.neighborhood  || [],
+      checkin:       this.answers.checkin        || null,
+      checkout:      this.answers.checkout       || null,
+      adults:        this.answers.adults         != null ? this.answers.adults : null,
+      children:      this.answers.children       || [],
+      rooms:         this.answers.rooms          || null,
+      stars:         this.answers.stars          || null,
+      budget:        this.answers.budget         || null,
+    };
     this._showConfirm(this.parsed);
   },
 
-  /* ══════════════ PARSER ══════════════ */
-  _parse(text){
-    const t = text;  // keep original case for display
-    const tl = t.toLowerCase();
-    return {
-      raw:           text,
-      city:          this._city(tl),
-      neighborhoods: this._neighborhoods(tl),
-      checkin:       this._checkin(tl),
-      checkout:      this._checkout(tl),
-      adults:        this._adults(tl),
-      children:      this._children(tl),
-      rooms:         this._rooms(tl),
-      stars:         this._stars(tl),
-      budget:        this._budget(tl),
-    };
+  /* ── display value for a key ── */
+  _displayVal(key, val){
+    switch(key){
+      case 'city':         return val ? `${val.he} · ${val.countryHe}` : '?';
+      case 'neighborhood': return Array.isArray(val)&&val.length ? val.map(n=>n.he).join(' + ') : 'כל העיר';
+      case 'checkin': case 'checkout': return val ? val.split('-').reverse().join('/') : '?';
+      case 'adults':       return val!=null ? `${val} מבוגרים` : '?';
+      case 'children':     return Array.isArray(val)&&val.length ? val.map(c=>c.age+"'").join(', ') : 'אין ילדים';
+      case 'rooms':        return val ? `${val} חדרים` : '?';
+      case 'stars':        return val ? `${val}★` : '?';
+      case 'budget':       return val ? `$${val}/לילה` : '?';
+      default: return String(val);
+    }
+  },
+
+  /* ══════════════ PARSER — per-key ══════════════ */
+  _parseKey(key, text){
+    const t = text.toLowerCase();
+    switch(key){
+      case 'city':         return this._city(t);
+      case 'neighborhood': return this._neighborhoods(t);
+      case 'checkin':      return this._checkin(t);
+      case 'checkout':     return this._checkout(t);
+      case 'adults':       return this._adults(t);
+      case 'children':     return this._children(t);
+      case 'rooms':        return this._rooms(t);
+      case 'stars':        return this._stars(t);
+      case 'budget':       return this._budget(t);
+    }
   },
 
   _city(t){
@@ -3447,12 +3624,11 @@ const VA = {
   },
 
   _children(t){
+    if(/אין|לא|דלג|בלי\s*ילד/.test(t)) return [];
     const kids=[];
-    // "ילד בן 13" / "ילדים בני 10 ו-12"
     const r1=/(?:ילד(?:ה|ים)?).*?(?:בן|בת|בני|בנות)?\s*(\d+)/g;
     let m;
     while((m=r1.exec(t))!==null) kids.push({age:+m[1]});
-    // fallback: age after "בן" "בת"
     if(!kids.length){
       const r2=/(?:בן|בת)\s*(\d+)/g;
       while((m=r2.exec(t))!==null) kids.push({age:+m[1]});
@@ -3463,7 +3639,8 @@ const VA = {
   _rooms(t){
     if(/2\s*חדר|שני\s*חדר|שניים\s*חדר|חדרים/.test(t)) return 2;
     if(/3\s*חדר|שלושה\s*חדר/.test(t)) return 3;
-    if(/חדר\s*(?:אחד|יחיד|זוגי|כפול|1)/.test(t)) return 1;
+    if(/(?:חדר\s*(?:אחד|יחיד|זוגי|כפול|1))|^(?:אחד|אחת|1)$/.test(t)) return 1;
+    if(/\b2\b/.test(t)) return 2;
     return null;
   },
 
