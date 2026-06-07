@@ -75,7 +75,7 @@ def _calc_nights(check_in, check_out):
 
 
 def search_hotel_single(api_key, query, check_in, check_out, adults,
-                         children_ages, min_stars, max_budget_usd, country_name):
+                         children_ages, min_stars, max_budget_usd, country_name, rooms=1):
     """Search hotels for a single country — returns ALL matching hotels"""
     if country_name not in GEO_COUNTRIES:
         return {'country': country_name, 'status': 'error', 'error': 'מדינה לא ידועה'}
@@ -96,6 +96,7 @@ def search_hotel_single(api_key, query, check_in, check_out, adults,
             'check_in_date':  check_in,
             'check_out_date': check_out,
             'adults':         effective_adults,
+            'rooms':          max(1, int(rooms)),
             'gl':             geo['gl'],
             'hl':             geo['hl'],
             'currency':       'USD',
@@ -700,6 +701,7 @@ def verify_hotel():
     check_in   = data.get('check_in')
     check_out  = data.get('check_out')
     adults     = int(data.get('adults', 2))
+    rooms      = max(1, int(data.get('rooms', 1) or 1))
     max_budget     = float(data.get('max_budget', 0))
     children_ages  = data.get('children_ages', [])
 
@@ -710,6 +712,7 @@ def verify_hotel():
             'check_in_date':  check_in,
             'check_out_date': check_out,
             'adults':         adults,
+            'rooms':          rooms,
             'gl':             'us',
             'hl':             'en',
             'currency':       'USD',
@@ -791,6 +794,7 @@ def search_hotels_stream():
     check_in        = data.get('check_in', '')
     check_out       = data.get('check_out', '')
     adults          = max(int(data.get('adults', 2) or 2), 1)
+    rooms           = max(int(data.get('rooms', 1) or 1), 1)
     children_ages   = data.get('children_ages', [])
     min_stars       = int(data.get('min_stars', 0))
     max_budget      = float(data.get('max_budget', 0))
@@ -825,7 +829,7 @@ def search_hotels_stream():
 
         for country in countries:
             result = search_hotel_single(api_key, query, search_check_in, search_check_out,
-                                          adults, children_ages, min_stars, max_budget, country)
+                                          adults, children_ages, min_stars, max_budget, country, rooms)
 
             if result['status'] == 'found_many':
                 country_hotels = result['hotels']
