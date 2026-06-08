@@ -609,6 +609,27 @@ tr:hover td{background:#f8fafc}
   --enter-ease:cubic-bezier(0.23,1,0.32,1);
 }
 .hotel-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.dual-results-container{display:flex;flex-direction:column;gap:0}
+.dual-section{margin-bottom:8px}
+.dual-section-header{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;margin:20px 0 14px;
+  background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.12));
+  border:1.5px solid rgba(99,102,241,.35);border-radius:14px;
+  font-size:16px;font-weight:800;color:#c7d2fe;
+}
+.va-compare-section{
+  background:#f8fafc;border-radius:12px;padding:14px;margin:10px 0;
+  border:1.5px solid #e2e8f0;
+}
+.va-compare-label{font-size:13px;font-weight:700;color:#475569;margin-bottom:10px}
+.va-rooms-choices{display:flex;gap:8px}
+.va-rooms-opt{
+  flex:1;padding:10px 6px;border:2px solid #e2e8f0;border-radius:10px;
+  background:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  color:#475569;transition:all .15s;text-align:center;
+}
+.va-rooms-opt.active{border-color:#4f46e5;background:#eef2ff;color:#4338ca}
 @media(min-width:640px)and (max-width:1023px){.hotel-cards-grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1100px){.hotel-cards-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:600px){.hotel-cards-grid{grid-template-columns:1fr;gap:14px}}
@@ -900,6 +921,15 @@ tr:hover td{background:#f8fafc}
     <div class="va-conf-sub">בדוק שהפרטים נכונים לפני החיפוש.<br>אם משהו חסר — לחץ "ערוך ידנית".</div>
     <div id="va-fields"></div>
     <div class="va-raw" id="va-raw"></div>
+    <!-- Rooms comparison — shown only when 2+ children -->
+    <div class="va-compare-section" id="va-compare-section" style="display:none">
+      <div class="va-compare-label">👨‍👩‍👧‍👦 יש ילדים — בחר מה לחפש:</div>
+      <div class="va-rooms-choices">
+        <button class="va-rooms-opt" id="va-ro-1" onclick="VA._pickRooms(1,this)">🏠 חדר אחד</button>
+        <button class="va-rooms-opt" id="va-ro-2" onclick="VA._pickRooms(2,this)">🛏️🛏️ שני חדרים</button>
+        <button class="va-rooms-opt active" id="va-ro-0" onclick="VA._pickRooms(0,this)">🔄 השוואה</button>
+      </div>
+    </div>
     <div class="va-conf-btns">
       <button class="va-btn-search" id="va-go-btn" onclick="VA.confirm()">🔍 חפש!</button>
       <button class="va-btn-edit" onclick="VA.openEdit()">✏️ ערוך ידנית</button>
@@ -2528,11 +2558,44 @@ function showNoResultsAttractions(){
 }
 
 /* ── HOTEL SEARCH ── */
-function doHotelSearch(){
+let _dualSearch=null; // {phase:1|2, rooms2:2}
+
+function _insertDualDivider(){
+  const wrap=document.getElementById('results-table-wrap');
+  const oldGrid=document.getElementById('hcards-grid');
+  if(!oldGrid||!wrap) return;
+  const container=document.createElement('div');
+  container.className='dual-results-container';
+  // Section 1
+  const sec1=document.createElement('div');
+  sec1.className='dual-section';
+  const h1=document.createElement('div');
+  h1.className='dual-section-header';
+  h1.textContent='🏠 חדר אחד משפחתי';
+  const g1=document.createElement('div');
+  g1.className='hotel-cards-grid';
+  [...oldGrid.children].forEach(c=>g1.appendChild(c));
+  sec1.appendChild(h1);sec1.appendChild(g1);
+  // Section 2
+  const sec2=document.createElement('div');
+  sec2.className='dual-section';
+  const h2=document.createElement('div');
+  h2.className='dual-section-header';
+  h2.textContent='🛏️🛏️ שני חדרים זוגיים';
+  const g2=document.createElement('div');
+  g2.className='hotel-cards-grid';
+  g2.id='hcards-grid';
+  sec2.appendChild(h2);sec2.appendChild(g2);
+  container.appendChild(sec1);container.appendChild(sec2);
+  wrap.innerHTML='';wrap.appendChild(container);
+}
+
+function doHotelSearch(appendMode=false){
   if(apiKey==='DEMO'){demoHotelSearch();return}
   const p=pending;
   const geoList=activeStrategy?activeStrategy.geoCountries:['🇮🇳 הודו','🇸🇬 סינגפור'];
-  showResultsPage('hotel');initPG(geoList);
+  if(!appendMode){showResultsPage('hotel');initPG(geoList);}
+  else{initPG(geoList);}
   const body={api_key:apiKey,query:p.query,check_in:p.ci,check_out:p.co,
     adults:p.adults,rooms:p.rooms||1,children_ages:getChildrenAges(),min_stars:stars,max_budget:p.budget,countries:geoList};
   // Search summary card — destination first, then details
@@ -2591,7 +2654,6 @@ function doHotelSearch(){
       showNearBudgetPrompt(r.hotels,body.max_budget);
     }
     else if(r.status==='done'){
-      // Close any cells still showing spinner (countries that returned no data at all)
       document.querySelectorAll('#progress-grid .pg-cell').forEach(cell=>{
         const stat=cell.querySelector('[id^="pgs-"]');
         if(stat&&stat.querySelector('.spinner')){
@@ -2599,7 +2661,18 @@ function doHotelSearch(){
           stat.innerHTML='<span class="pg-err">לא נמצא</span>';
         }
       });
-      if(foundHotels===0)showNoResults(body.min_stars,body.max_budget);
+      if(foundHotels===0&&!_dualSearch)showNoResults(body.min_stars,body.max_budget);
+      // Dual search: after phase 1 ends, start phase 2
+      if(_dualSearch&&_dualSearch.phase===1){
+        _dualSearch.phase=2;
+        const rooms2=_dualSearch.rooms2;
+        _dualSearch=null;
+        setTimeout(()=>{
+          _insertDualDivider();
+          pending.rooms=rooms2;
+          doHotelSearch(true);
+        },600);
+      }
     }
     else if(r.status==='error'||r.status==='no_results')setPG(r.country,r.error||r.message||'לא נמצא','error');
   });
@@ -3382,7 +3455,13 @@ const VA = {
 
   /* ── state ── */
   recognition:null, transcript:'', parsed:null,
-  currentStep:0, answers:{}, _recActive:false,
+  currentStep:0, answers:{}, _recActive:false, _pickedRoomsMode:null,
+
+  _pickRooms(mode,btn){
+    document.querySelectorAll('.va-rooms-opt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    this._pickedRoomsMode=mode;
+  },
 
   /* ── init ── */
   init(){
@@ -3769,13 +3848,39 @@ const VA = {
     goBtn.textContent = missing.length ? `⚠️ חסר: ${missing.join(', ')} — חפש בכל זאת` : '🔍 חפש!';
     goBtn.style.background = missing.length ? '#d97706' : '#4f46e5';
 
+    // Rooms comparison — only when 2+ children
+    this._pickedRoomsMode = p.rooms || null;
+    const cmpEl=document.getElementById('va-compare-section');
+    if(p.children.length>=2){
+      const r=p.rooms;
+      document.getElementById('va-compare-section').style.display='block';
+      document.getElementById('va-ro-1').classList.toggle('active',r===1);
+      document.getElementById('va-ro-2').classList.toggle('active',r===2);
+      document.getElementById('va-ro-0').classList.remove('active');
+      if(!r) this._pickedRoomsMode=0; // default to "compare both" when no rooms chosen
+      if(!r) document.getElementById('va-ro-0').classList.add('active');
+    } else {
+      document.getElementById('va-compare-section').style.display='none';
+    }
+
     document.getElementById('va-confirm-modal').classList.add('open');
   },
 
   /* ── confirm → fill + search ── */
   confirm(){
     document.getElementById('va-confirm-modal').classList.remove('open');
-    this._fillAndSearch(this.parsed);
+    const p={...this.parsed};
+    if(this._pickedRoomsMode!==null){
+      if(this._pickedRoomsMode===0){
+        p.rooms=1;
+        _dualSearch={phase:1,rooms2:2};
+      } else {
+        p.rooms=this._pickedRoomsMode;
+        _dualSearch=null;
+      }
+    }
+    this.parsed=p;
+    this._fillAndSearch(p);
   },
 
   /* ── edit → fill + open drawer ── */
