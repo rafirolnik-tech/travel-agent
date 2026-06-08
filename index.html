@@ -3155,20 +3155,21 @@ function renderHotelsCards(rows, actualNights){
             ${r.reviews?`<span class="hcard-reviews">${Number(r.reviews).toLocaleString()} ביקורות</span>`:''}
           </div>
         </div>
-        <div class="hcard-price-total" style="font-size:12px;color:var(--dim);margin:8px 0 4px">סה"כ: ${esc(r.total_price)} · ${nightsLabel}</div>
-        <a class="hcard-cta" href="${esc(lnk.url)}" target="_blank" rel="noopener">
-          🏆 ${esc(r.price_per_night)} — לחץ לסגירת הדיל
-          <span class="hcard-book-sub">המחיר הזול ביותר שנמצא · Google Hotels ↗</span>
+        <div class="hcard-price-total" style="font-size:12px;color:var(--dim);margin:8px 0 4px">מחיר מ-Google Hotels (הודו/סינגפור) · ${esc(r.total_price)} סה"כ · ${nightsLabel}</div>
+        ${(()=>{const dl=_hotelDeepLinks(r.hotel_name);return`
+        <a class="hcard-cta" href="${esc(dl.booking)}" target="_blank" rel="noopener">
+          🏷️ ${esc(r.price_per_night)} — הזמן ב-Booking.com
+          <span class="hcard-book-sub">תאריכים + אורחים + חדרים מסוננים ↗</span>
         </a>
         <div class="hcard-compare-row">
-          <span class="hcard-compare-lbl">השווה גם:</span>
-          <a class="hcard-compare-link" href="https://www.agoda.com/search?q=${encodeURIComponent(r.hotel_name)}" target="_blank" rel="noopener"
+          <span class="hcard-compare-lbl">השווה:</span>
+          <a class="hcard-compare-link" href="${esc(dl.agoda)}" target="_blank" rel="noopener"
              style="background:#e51837;color:#fff">Agoda</a>
-          <a class="hcard-compare-link" href="https://www.trip.com/hotels/list?keyword=${encodeURIComponent(r.hotel_name)}" target="_blank" rel="noopener"
+          <a class="hcard-compare-link" href="${esc(dl.trip)}" target="_blank" rel="noopener"
              style="background:#00a2e0;color:#fff">Trip.com</a>
-          <a class="hcard-compare-link" href="https://www.booking.com/search.html?ss=${encodeURIComponent(r.hotel_name)}" target="_blank" rel="noopener"
-             style="background:#003580;color:#fff">Booking</a>
-        </div>
+          <a class="hcard-compare-link" href="${esc(lnk.url)}" target="_blank" rel="noopener"
+             style="background:#1a73e8;color:#fff">Google</a>
+        </div>`;})()}
       </div>`;
     grid.appendChild(card);
     const delay=Math.min(i,7)*60;
