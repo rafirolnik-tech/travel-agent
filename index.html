@@ -3370,14 +3370,14 @@ const VA = {
   /* ── conversation steps ── */
   STEPS:[
     {key:'city',         optional:false, q:'לאן תרצה לנסוע? אמור את שם העיר והמדינה'},
-    {key:'neighborhood', optional:true,  q:'באיזה אזור בעיר תרצה ללון? אם לא משנה — אמור "דלג"'},
-    {key:'checkin',      optional:false, q:'מה תאריך הצ׳ק-אין? לדוגמה: "22 ביוני"'},
+    {key:'neighborhood', optional:true,  q:'באיזה אזור בעיר תרצה ללון? אם לא משנה — לחץ דלג'},
+    {key:'checkin',      optional:false, q:'מה תאריך הצ׳ק-אין? לדוגמה: עשרים ושניים ביוני'},
     {key:'checkout',     optional:false, q:'מה תאריך הצ׳ק-אאוט?'},
-    {key:'adults',       optional:false, q:'כמה מבוגרים נוסעים?'},
-    {key:'children',     optional:true,  q:'האם יש ילדים? אם כן — אמור כמה ומה הגילאים שלהם. אם לא — אמור "אין"'},
-    {key:'rooms',        optional:true,  q:'כמה חדרים תצטרך? חדר אחד או שני חדרים?'},
-    {key:'stars',        optional:true,  q:'כמה כוכבים? שלוש, ארבע, או חמש כוכבים?'},
-    {key:'budget',       optional:true,  q:'מה התקציב המקסימלי שלך ללילה — בדולרים?'},
+    {key:'adults',       optional:false, q:'כמה מבוגרים נוסעים? אמור מספר'},
+    {key:'children',     optional:true,  q:'האם יש ילדים? אמור כמה ואת כל הגילאים. לדוגמה: שני ילדים, עשר ושלוש עשרה. אם אין — לחץ דלג'},
+    {key:'rooms',        optional:true,  q:'כמה חדרים? חדר משפחתי אחד לכולם, או שני חדרים נפרדים? לחץ דלג אם לא משנה'},
+    {key:'stars',        optional:true,  q:'מינימום כמה כוכבים? אמור שלוש, ארבע, או חמש. לחץ דלג אם לא משנה'},
+    {key:'budget',       optional:true,  q:'מה המחיר המקסימלי ללילה בדולרים? אמור רק מספר. לחץ דלג אם לא משנה'},
   ],
 
   /* ── state ── */
@@ -3620,85 +3620,112 @@ const VA = {
       .map(([he,en])=>({he,en}));
   },
 
+  /* ── Hebrew day-number words → digit ── */
+  _heDay(t){
+    const map={
+      'עשרים ואחד':21,'עשרים ואחת':21,'עשרים ושניים':22,'עשרים ושתיים':22,
+      'עשרים ושלושה':23,'עשרים ושלוש':23,'עשרים וארבעה':24,'עשרים וארבע':24,
+      'עשרים וחמישה':25,'עשרים וחמש':25,'עשרים ושישה':26,'עשרים ושש':26,
+      'עשרים ושבעה':27,'עשרים ושבע':27,'עשרים ושמונה':28,'עשרים ותשעה':29,
+      'שלושים ואחד':31,'שלושים':30,'עשרים':20,
+      'תשעה עשר':19,'תשע עשרה':19,'שמונה עשר':18,'שמונה עשרה':18,
+      'שבעה עשר':17,'שבע עשרה':17,'שישה עשר':16,'שש עשרה':16,
+      'חמישה עשר':15,'חמש עשרה':15,'ארבעה עשר':14,'ארבע עשרה':14,
+      'שלושה עשר':13,'שלוש עשרה':13,'שניים עשר':12,'שתים עשרה':12,
+      'אחד עשר':11,'אחת עשרה':11,'עשרה':10,'עשר':10,
+      'תשעה':9,'תשע':9,'שמונה':8,'שבעה':7,'שבע':7,
+      'שישה':6,'שש':6,'חמישה':5,'חמש':5,'ארבעה':4,'ארבע':4,
+      'שלושה':3,'שלוש':3,'שניים':2,'שתיים':2,'אחד':1,'אחת':1,
+    };
+    for(const [w,n] of Object.entries(map)) if(t.includes(w)) return n;
+    return null;
+  },
+
   _parseOneDate(t){
-    const year = new Date().getFullYear();
-    // "22 ביוני" / "22 יוני"
+    const yr = new Date().getFullYear();
+    const mkDate=(day,mo)=>{ const d=new Date(yr,mo-1,day); if(d<new Date())d.setFullYear(yr+1); return d.toISOString().split('T')[0]; };
+    // digit + month name: "22 יוני" / "22 ביוני"
     for(const [name,mo] of Object.entries(this.MONTHS)){
       const m = t.match(new RegExp(`(\\d{1,2})\\s*(?:ב)?${name}`));
-      if(m){ const d=new Date(year,mo-1,+m[1]); if(d<new Date())d.setFullYear(year+1); return d.toISOString().split('T')[0]; }
+      if(m) return mkDate(+m[1],mo);
+      // Hebrew word + month name: "עשרים ושניים ביוני"
+      if(t.includes(name)){ const d=this._heDay(t); if(d) return mkDate(d,mo); }
     }
-    // "22/6" or "22.6"
-    const slash=[...t.matchAll(/(\d{1,2})[\/.](\d{1,2})/g)];
-    if(slash.length){ const[,d,mo]=slash[0]; const dt=new Date(year,+mo-1,+d); if(dt<new Date())dt.setFullYear(year+1); return dt.toISOString().split('T')[0]; }
+    // slash/dot: "22/6" "22.6"
+    const s=[...t.matchAll(/(\d{1,2})[\/.](\d{1,2})/g)];
+    if(s.length){ const[,d,m]=s[0]; return mkDate(+d,+m); }
     return null;
   },
 
   _checkin(t){ return this._parseOneDate(t); },
 
-  _checkout(t){
-    // Look for "עד" / "ל-" after first date
-    const markers=['עד ','ועד ','עד-','ל-','ועד-'];
-    for(const m of markers){
-      const idx=t.indexOf(m);
-      if(idx>-1){ const sub=t.slice(idx+m.length); const d=this._parseOneDate(sub); if(d) return d; }
-    }
-    // Two dates: second one is checkout
-    const slash=[...t.matchAll(/(\d{1,2})[\/.](\d{1,2})/g)];
-    if(slash.length>=2){
-      const year=new Date().getFullYear();
-      const[,d,mo]=slash[1];
-      const dt=new Date(year,+mo-1,+d);
-      if(dt<new Date())dt.setFullYear(year+1);
-      return dt.toISOString().split('T')[0];
-    }
-    // Two month-name dates: find second occurrence
-    let count=0;
-    for(const [name,mo] of Object.entries(this.MONTHS)){
-      const re=new RegExp(`(\\d{1,2})\\s*(?:ב)?${name}`,'g');
-      let m;
-      while((m=re.exec(t))!==null){ count++; if(count===2){ const year=new Date().getFullYear(); const dt=new Date(year,mo-1,+m[1]); if(dt<new Date())dt.setFullYear(year+1); return dt.toISOString().split('T')[0]; } }
-    }
-    return null;
-  },
+  // In step-by-step mode the user says one date → just parse it directly
+  _checkout(t){ return this._parseOneDate(t); },
 
   _adults(t){
     const m=t.match(/(\d+)\s*מבוגר/);
     if(m) return +m[1];
-    if(/זוג/.test(t)) return 2;
+    // Hebrew number words
+    if(/שניים|שתיים|זוג/.test(t)) return 2;
+    if(/שלושה|שלוש[^ה]/.test(t)) return 3;
+    if(/ארבעה|ארבע[^ה]/.test(t)) return 4;
+    if(/חמישה|חמש[^ה]/.test(t)) return 5;
+    // single digit fallback
+    const n=t.match(/\b([1-9])\b/);
+    if(n) return +n[1];
     return null;
   },
 
   _children(t){
     if(/אין|לא|דלג|בלי\s*ילד/.test(t)) return [];
-    const kids=[];
-    const r1=/(?:ילד(?:ה|ים)?).*?(?:בן|בת|בני|בנות)?\s*(\d+)/g;
-    let m;
-    while((m=r1.exec(t))!==null) kids.push({age:+m[1]});
-    if(!kids.length){
-      const r2=/(?:בן|בת)\s*(\d+)/g;
-      while((m=r2.exec(t))!==null) kids.push({age:+m[1]});
-    }
-    return kids;
+    // count: "N ילדים" — don't treat count as age
+    const countM=t.match(/(\d+)\s*ילד/);
+    const count=countM ? +countM[1] : null;
+    // collect ALL plausible child ages (1–17) from the text
+    const ages=[...t.matchAll(/\b(\d{1,2})\b/g)]
+      .map(m=>+m[1])
+      .filter(n=>n>=1&&n<=17&&n!==count);
+    if(ages.length) return ages.map(a=>({age:a}));
+    // Hebrew age words: "עשר", "שלוש עשרה" etc.
+    const heAges=[];
+    const ageWords={'אחד':1,'שניים':2,'שלוש':3,'ארבע':4,'חמש':5,'שש':6,'שבע':7,'שמונה':8,'תשע':9,'עשר':10,'אחד עשר':11,'שתים עשרה':12,'שלוש עשרה':13,'ארבע עשרה':14,'חמש עשרה':15,'שש עשרה':16,'שבע עשרה':17};
+    for(const [w,n] of Object.entries(ageWords).sort((a,b)=>b[0].length-a[0].length))
+      if(t.includes(w)){ heAges.push({age:n}); t=t.replace(w,''); }
+    if(heAges.length) return heAges;
+    if(count&&count<=4) return Array.from({length:count},()=>({age:null}));
+    return null;
   },
 
   _rooms(t){
-    if(/2\s*חדר|שני\s*חדר|שניים\s*חדר|חדרים/.test(t)) return 2;
-    if(/3\s*חדר|שלושה\s*חדר/.test(t)) return 3;
-    if(/(?:חדר\s*(?:אחד|יחיד|זוגי|כפול|1))|^(?:אחד|אחת|1)$/.test(t)) return 1;
+    if(/שני\s*חדר|שניים\s*חדר|2\s*חדר|חדרים\s*נפרד|שני\s*נפרד/.test(t)) return 2;
+    if(/שלושה\s*חדר|3\s*חדר/.test(t)) return 3;
+    if(/חדר\s*(?:אחד|יחיד|משפחתי|זוגי|כפול|גדול|אחד\s*לכולם|1)|^(?:אחד|אחת|1)$/.test(t)) return 1;
     if(/\b2\b/.test(t)) return 2;
+    if(/\b1\b/.test(t)) return 1;
     return null;
   },
 
   _stars(t){
-    const m=t.match(/([3-5])\s*כוכב/);
-    return m ? +m[1] : null;
+    // collect all 3-5 digits in the text (in context of כוכב OR as standalone answer)
+    const hasKochav=/כוכב/.test(t);
+    const nums=[...t.matchAll(/\b([3-5])\b/g)].map(m=>+m[1]);
+    // Hebrew star words
+    if(/ארבע(?:ה)?/.test(t)) nums.push(4);
+    if(/חמש(?:ה)?/.test(t)) nums.push(5);
+    if(/שלוש(?:ה)?/.test(t)) nums.push(3);
+    const valid=[...new Set(nums)].filter(n=>n>=3&&n<=5);
+    if(!valid.length) return null;
+    return Math.min(...valid); // "4 ו-5" → 4 (search from 4 stars up)
   },
 
   _budget(t){
-    const m=t.match(/(?:עד|מקסימום|בערך|כ-)?\s*(\d+)\s*(?:\$|דולר|usd|\$)/i)
-          || t.match(/(\d+)\s*(?:דולר|usd|\$)/i)
-          || t.match(/עד\s*(\d+)/i);
-    return m ? +m[1] : null;
+    // explicit: "150 דולר" / "$150" / "עד 150"
+    const m=t.match(/(\d+)\s*(?:דולר|\$|usd)/i)
+          ||t.match(/(?:עד|לא\s*יותר\s*מ[ה-]?|מקסימום|בערך|כ[-]?)\s*(\d+)/i)
+          ||t.match(/\b(\d{2,4})\b/); // any 2-4 digit number as fallback
+    if(!m) return null;
+    const v=+m[1];
+    return (v>=20&&v<=9999) ? v : null;
   },
 
   /* ══════════════ CONFIRMATION UI ══════════════ */
