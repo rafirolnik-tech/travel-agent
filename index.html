@@ -443,13 +443,21 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   display:flex;gap:10px;padding:10px 16px 18px;flex-shrink:0;
 }
 .va-skip-btn{
-  padding:11px 18px;background:rgba(255,255,255,.07);
+  padding:11px 16px;background:rgba(255,255,255,.07);
   border:1.5px solid rgba(255,255,255,.14);color:rgba(255,255,255,.55);
   border-radius:12px;font-size:14px;cursor:pointer;font-family:inherit;
+  white-space:nowrap;
 }
-.va-next-btn{
-  flex:1;padding:13px;background:#4f46e5;color:#fff;
-  border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+.va-ptt-btn{
+  flex:1;padding:14px;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  color:#fff;border:none;border-radius:12px;
+  font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:background .2s;
+}
+.va-ptt-btn.recording{
+  background:linear-gradient(135deg,#dc2626,#ef4444);
+  animation:va-dot-pulse 1.2s ease-in-out infinite;
 }
 
 /* confirmation modal */
@@ -880,7 +888,7 @@ tr:hover td{background:#f8fafc}
     </div>
     <div class="va-step-controls">
       <button class="va-skip-btn" onclick="VA.skip()">דלג ⏭</button>
-      <button class="va-next-btn" onclick="VA.confirmStep()">✓ אישור</button>
+      <button class="va-ptt-btn" id="va-ptt-btn" onclick="VA.ptt()">🎙️ לחץ לדיבור</button>
     </div>
   </div>
 </div>
@@ -3374,7 +3382,7 @@ const VA = {
 
   /* ── state ── */
   recognition:null, transcript:'', parsed:null,
-  currentStep:0, answers:{},
+  currentStep:0, answers:{}, _recActive:false,
 
   /* ── init ── */
   init(){
@@ -3425,25 +3433,47 @@ const VA = {
   /* ── close ── */
   cancel(){
     this._stopRec();
+    this._resetPTT();
     speechSynthesis.cancel();
     document.getElementById('va-rec-modal').classList.remove('open');
   },
 
-  /* ── run a step: speak question → record ── */
+  /* ── PTT button: first tap = start, second tap = confirm ── */
+  ptt(){
+    if(!this._recActive){
+      this._recActive = true;
+      const btn = document.getElementById('va-ptt-btn');
+      btn.textContent = '⏹ לחץ לאישור';
+      btn.classList.add('recording');
+      this._startRec();
+    } else {
+      this.confirmStep();
+    }
+  },
+
+  _resetPTT(){
+    this._recActive = false;
+    const btn = document.getElementById('va-ptt-btn');
+    if(btn){ btn.textContent = '🎙️ לחץ לדיבור'; btn.classList.remove('recording'); }
+  },
+
+  /* ── run a step: speak question, wait for user to tap PTT ── */
   _runStep(i){
     this.currentStep = i;
     if(i >= this.STEPS.length){ this._finalize(); return; }
     const step = this.STEPS[i];
     this.transcript = '';
+    this._resetPTT();
     const el = document.getElementById('va-transcript');
-    el.textContent = 'מקשיב... 🎙️'; el.classList.add('placeholder');
+    el.textContent = 'לחץ על הכפתור הכחול כדי לדבר'; el.classList.add('placeholder');
     this._addBubble('agent', step.q);
-    this._speak(step.q, () => this._startRec());
+    this._speak(step.q, ()=>{});
   },
 
-  /* ── user taps ✓ ── */
+  /* ── user taps ✓ (or second PTT tap) ── */
   confirmStep(){
     this._stopRec();
+    this._resetPTT();
     speechSynthesis.cancel();
     const step = this.STEPS[this.currentStep];
     const text = this.transcript.trim();
@@ -3472,6 +3502,7 @@ const VA = {
   /* ── user taps ⏭ ── */
   skip(){
     this._stopRec();
+    this._resetPTT();
     speechSynthesis.cancel();
     this.answers[this.STEPS[this.currentStep].key] = null;
     this._addBubble('parsed', '⏭ דולג...');
