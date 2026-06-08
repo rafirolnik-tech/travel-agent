@@ -941,7 +941,7 @@ tr:hover td{background:#f8fafc}
       <div class="va-rooms-choices">
         <button class="va-rooms-opt" id="va-ro-1" onclick="VA._pickRooms(1,this)">🏠 חדר אחד</button>
         <button class="va-rooms-opt" id="va-ro-2" onclick="VA._pickRooms(2,this)">🛏️🛏️ שני חדרים</button>
-        <button class="va-rooms-opt active" id="va-ro-0" onclick="VA._pickRooms(0,this)">🔄 השוואה</button>
+        <button class="va-rooms-opt active" id="va-ro-0" onclick="VA._pickRooms(0,this)">🔄 גם וגם</button>
       </div>
     </div>
     <div class="va-conf-btns">
@@ -2660,7 +2660,7 @@ function doHotelSearch(appendMode=false){
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button onclick="_triggerRoomsSearch(1)" style="padding:9px 16px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🏠 חדר אחד</button>
           <button onclick="_triggerRoomsSearch(2)" style="padding:9px 16px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🛏️🛏️ שני חדרים</button>
-          <button onclick="_triggerRoomsSearch(0)" style="padding:9px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🔄 השוואה</button>
+          <button onclick="_triggerRoomsSearch(0)" style="padding:9px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🔄 גם וגם</button>
         </div>
       </div>`:''}`;
     dbg.style.display='block';
