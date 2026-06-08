@@ -2574,6 +2574,18 @@ function showNoResultsAttractions(){
 /* ── HOTEL SEARCH ── */
 let _dualSearch=null; // {phase:1|2, rooms2:2}
 
+function _triggerRoomsSearch(mode){
+  // mode 0 = compare both, 1 = one room, 2 = two rooms
+  if(mode===0){
+    pending.rooms=1;
+    _dualSearch={phase:1,rooms2:2};
+  } else {
+    pending.rooms=mode;
+    _dualSearch=null;
+  }
+  doHotelSearch();
+}
+
 function _insertDualDivider(){
   const wrap=document.getElementById('results-table-wrap');
   const oldGrid=document.getElementById('hcards-grid');
@@ -2641,7 +2653,16 @@ function doHotelSearch(appendMode=false){
       </div>
       <div style="font-size:11px;color:rgba(255,255,255,.35);border-top:1px solid rgba(255,255,255,.1);padding-top:10px">
         Google Hotels API · מחירים בזמן אמת · עשויים להשתנות
-      </div>`;
+      </div>
+      ${guestAges.length>=2?`
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px">👨‍👩‍👧‍👦 יש ${guestAges.length} ילדים — חפש השוואת חדרים:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="_triggerRoomsSearch(1)" style="padding:9px 16px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🏠 חדר אחד</button>
+          <button onclick="_triggerRoomsSearch(2)" style="padding:9px 16px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🛏️🛏️ שני חדרים</button>
+          <button onclick="_triggerRoomsSearch(0)" style="padding:9px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🔄 השוואה</button>
+        </div>
+      </div>`:''}`;
     dbg.style.display='block';
   }
   let foundHotels=0;
@@ -3044,11 +3065,10 @@ function hotelLink(r){
 
   // Build Google Hotels search URL with dates + guests embedded
   // Format: YYYYMMDD for dates
-  const ciCompact=pending.ci.replace(/-/g,'');
-  const coCompact=pending.co.replace(/-/g,'');
-  const query=encodeURIComponent(r.hotel_name+' '+( ssState.city.label||ssState.country.label||''));
+  const query=encodeURIComponent(r.hotel_name+' '+(ssState.city.label||ssState.country.label||''));
   const rooms=pending.rooms||1;
-  const ghUrl=`https://www.google.com/travel/hotels?q=${query}&dates=${ciCompact},${coCompact}&adults=${effAdults}${effChildren.map(a=>`&children=${a}`).join('')}&rooms=${rooms}&hl=en&gl=us&curr=USD`;
+  // Use Google Hotels search URL with explicit checkin/checkout — avoids the entity-page that drops params
+  const ghUrl=`https://www.google.com/travel/hotels?q=${query}&checkin=${pending.ci}&checkout=${pending.co}&adults=${effAdults}${effChildren.map(a=>`&children=${a}`).join('')}&rooms=${rooms}`;
 
   return {
     url:   ghUrl,
