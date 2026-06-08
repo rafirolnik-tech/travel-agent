@@ -3044,15 +3044,17 @@ function _hotelDeepLinks(hotelName){
   const childAgesStr=effChildren.join(',');
 
   const rooms2=pending.rooms||1;
-  // Agoda: dates + guests + hotel name
+  // Agoda: hotel name + dates + guests
   const agoda=`https://www.agoda.com/search?q=${name}&checkin=${ci}&checkout=${co}&adults=${effAdults}${effChildren.length?'&children='+effChildren.length+'&childages='+childAgesStr:''}&rooms=${rooms2}`;
 
-  // Trip.com: dates + guests + hotel name
+  // Trip.com: hotel name + dates + guests
   const trip=`https://www.trip.com/hotels/list?keyword=${name}&checkin=${ciCompact}&checkout=${coCompact}&adult=${effAdults}${effChildren.length?'&children='+effChildren.length:''}`;
 
-  // Booking.com: dates + guests + hotel name
+  // Booking.com: city search (more reliable than hotel name) + dates + guests
+  // Hotel name search often fails; city search always works and user can filter
   const bkAges=effChildren.map(a=>`age=${a}`).join('&');
-  const booking=`https://www.booking.com/searchresults.html?ss=${name}&checkin=${ci}&checkout=${co}&group_adults=${effAdults}&group_children=${effChildren.length}${effChildren.length?'&'+bkAges:''}&dest_type=hotel&no_rooms=${rooms2}`;
+  const bkCity=encodeURIComponent((ssState?.city?.label||'')+' '+(ssState?.country?.label||''));
+  const booking=`https://www.booking.com/searchresults.html?ss=${bkCity}&checkin=${ci}&checkout=${co}&group_adults=${effAdults}&group_children=${effChildren.length}${effChildren.length?'&'+bkAges:''}&no_rooms=${rooms2}`;
 
   return {agoda,trip,booking};
 }
@@ -3159,7 +3161,7 @@ function renderHotelsCards(rows, actualNights){
         ${(()=>{const dl=_hotelDeepLinks(r.hotel_name);return`
         <a class="hcard-cta" href="${esc(dl.booking)}" target="_blank" rel="noopener">
           🏷️ ${esc(r.price_per_night)} — הזמן ב-Booking.com
-          <span class="hcard-book-sub">תאריכים + אורחים + חדרים מסוננים ↗</span>
+          <span class="hcard-book-sub">עיר + תאריכים + אורחים ↗ (סנן לפי שם מלון)</span>
         </a>
         <div class="hcard-compare-row">
           <span class="hcard-compare-lbl">השווה:</span>
