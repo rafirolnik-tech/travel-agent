@@ -2668,10 +2668,8 @@ function doHotelSearch(appendMode=false){
           <button onclick="_triggerRoomsSearch(0)" style="padding:9px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🔄 גם וגם</button>
         </div>
       </div>`:''}
-      <div style="margin-top:14px;padding:12px 16px;background:rgba(251,146,60,.12);border:1.5px solid rgba(251,146,60,.35);border-radius:12px;font-size:13px;color:#fb923c;line-height:1.6">
-        🌐 <b>מחירים מ-IP הודי</b> — להזמנה במחיר הזה:<br>
-        <span style="color:rgba(255,255,255,.7)">① הפעל <b style="color:#fb923c">Windscribe</b> (חינם) → בחר <b style="color:#fb923c">India</b>&nbsp;&nbsp;②לחץ 📋 על המלון&nbsp;&nbsp;③ פתח בטאב חדש</span><br>
-        <a href="https://windscribe.com/download" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;padding:5px 14px;background:rgba(251,146,60,.22);border:1px solid rgba(251,146,60,.4);border-radius:8px;color:#fb923c;text-decoration:none;font-weight:700;font-size:12px">⬇️ הורד Windscribe (חינם, 10GB/חודש)</a>
+      <div style="margin-top:14px;padding:10px 14px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);border-radius:12px;font-size:12px;color:#4ade80;line-height:1.5">
+        ✅ <b>מחירים מ-IP הודי/סינגפורי</b> — לחיצה על כפתור הזמנה תעביר אותך ישירות למלון עם המחיר שנמצא
       </div>`;
     dbg.style.display='block';
   }
@@ -3178,20 +3176,27 @@ function renderHotelsCards(rows, actualNights){
           </div>
         </div>
         <div class="hcard-price-total" style="font-size:12px;color:var(--dim);margin:8px 0 4px">מחיר מ-Google Hotels (הודו/סינגפור) · ${esc(r.total_price)} סה"כ · ${nightsLabel}</div>
-        ${(()=>{const dl=_hotelDeepLinks(r.hotel_name);return`
-        <a class="hcard-cta" href="${esc(dl.agoda)}" target="_blank" rel="noopener">
+        ${(()=>{
+          const dl=_hotelDeepLinks(r.hotel_name);
+          // Prefer server-provided links (captured at Indian IP) over generated fallbacks
+          const agodaHref = r.agoda_link   || dl.agoda;
+          const bookHref  = r.booking_link || dl.booking;
+          const tripHref  = r.trip_link    || dl.trip;
+          const hasDirectLink = !!(r.agoda_link || r.booking_link);
+          return`
+        <a class="hcard-cta" href="${esc(agodaHref)}" target="_blank" rel="noopener">
           🏷️ ${esc(r.price_per_night)} — הזמן ב-Agoda
-          <span class="hcard-book-sub">מחיר הודי · עם VPN India הכי זול ↗</span>
+          <span class="hcard-book-sub">${hasDirectLink ? 'קישור ישיר · מחיר כפי שנמצא ↗' : 'עם VPN India הכי זול ↗'}</span>
         </a>
         <div class="hcard-copy-row">
-          <button class="hcard-copy-btn" onclick="_copyLink(this,'${dl.agoda.replace(/'/g,"\\'")}')">📋 העתק קישור Agoda</button>
-          <span class="hcard-copy-hint">העתק → Windscribe India → הדבק</span>
+          <button class="hcard-copy-btn" onclick="_copyLink(this,'${agodaHref.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">📋 העתק</button>
+          <span class="hcard-copy-hint">${hasDirectLink ? 'קישור ישיר ל-Agoda עם תאריכים' : 'העתק → Windscribe India → הדבק'}</span>
         </div>
         <div class="hcard-compare-row">
           <span class="hcard-compare-lbl">השווה:</span>
-          <a class="hcard-compare-link" href="${esc(dl.booking)}" target="_blank" rel="noopener"
+          <a class="hcard-compare-link" href="${esc(bookHref)}" target="_blank" rel="noopener"
              style="background:#003580;color:#fff">Booking</a>
-          <a class="hcard-compare-link" href="${esc(dl.trip)}" target="_blank" rel="noopener"
+          <a class="hcard-compare-link" href="${esc(tripHref)}" target="_blank" rel="noopener"
              style="background:#00a2e0;color:#fff">Trip.com</a>
           <a class="hcard-compare-link" href="${esc(lnk.url)}" target="_blank" rel="noopener"
              style="background:#1a73e8;color:#fff">Google</a>

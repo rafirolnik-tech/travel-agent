@@ -152,6 +152,21 @@ def search_hotel_single(api_key, query, check_in, check_out, adults,
 
             images = p.get('images', [])
             thumb  = images[0].get('thumbnail', '') if images else ''
+
+            # Extract direct OTA links captured at the search geo (Indian/Singapore IP)
+            agoda_link = booking_link = trip_link = ''
+            for pr in p.get('prices', []):
+                src = pr.get('source', '').lower()
+                lnk = pr.get('link', '')
+                if not lnk:
+                    continue
+                if 'agoda' in src and not agoda_link:
+                    agoda_link = lnk
+                elif 'booking' in src and not booking_link:
+                    booking_link = lnk
+                elif 'trip' in src and not trip_link:
+                    trip_link = lnk
+
             hotel_entry = {
                 'country':         country_name,
                 'status':          'found',
@@ -164,6 +179,9 @@ def search_hotel_single(api_key, query, check_in, check_out, adults,
                 'rating':          p.get('overall_rating', ''),
                 'reviews':         p.get('reviews', ''),
                 'link':            p.get('link', '#'),
+                'agoda_link':      agoda_link,
+                'booking_link':    booking_link,
+                'trip_link':       trip_link,
                 'thumbnail':       thumb,
                 'nights':          nights,
             }
