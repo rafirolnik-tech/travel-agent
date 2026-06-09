@@ -153,13 +153,27 @@ def search_hotel_single(api_key, query, check_in, check_out, adults,
             images = p.get('images', [])
             thumb  = images[0].get('thumbnail', '') if images else ''
 
-            # Extract direct OTA links captured at the search geo (Indian/Singapore IP)
+            # Extract OTA links captured at the search geo (Indian/Singapore IP)
             agoda_link = booking_link = trip_link = ''
+            cheapest_link = ''
+            cheapest_source = ''
+            cheapest_price_num = float('inf')
+
             for pr in p.get('prices', []):
                 src = pr.get('source', '').lower()
                 lnk = pr.get('link', '')
                 if not lnk:
                     continue
+                pr_price = parse_price(
+                    pr.get('rate_per_night', {}).get('extracted_lowest') or
+                    pr.get('rate_per_night', {}).get('lowest', '')
+                )
+                # Track cheapest across ALL OTAs
+                if pr_price < cheapest_price_num:
+                    cheapest_price_num = pr_price
+                    cheapest_link = lnk
+                    cheapest_source = pr.get('source', '')
+                # Also keep named links for compare row
                 if 'agoda' in src and not agoda_link:
                     agoda_link = lnk
                 elif 'booking' in src and not booking_link:
@@ -168,22 +182,24 @@ def search_hotel_single(api_key, query, check_in, check_out, adults,
                     trip_link = lnk
 
             hotel_entry = {
-                'country':         country_name,
-                'status':          'found',
-                'hotel_name':      p.get('name', ''),
-                'price_num':       price,
-                'price_per_night': f'${price:.0f}',
-                'total_price':     f'${price * nights:.0f}',
-                'stars':           stars if stars is not None else '',
-                'hotel_class':     p.get('hotel_class', ''),
-                'rating':          p.get('overall_rating', ''),
-                'reviews':         p.get('reviews', ''),
-                'link':            p.get('link', '#'),
-                'agoda_link':      agoda_link,
-                'booking_link':    booking_link,
-                'trip_link':       trip_link,
-                'thumbnail':       thumb,
-                'nights':          nights,
+                'country':          country_name,
+                'status':           'found',
+                'hotel_name':       p.get('name', ''),
+                'price_num':        price,
+                'price_per_night':  f'${price:.0f}',
+                'total_price':      f'${price * nights:.0f}',
+                'stars':            stars if stars is not None else '',
+                'hotel_class':      p.get('hotel_class', ''),
+                'rating':           p.get('overall_rating', ''),
+                'reviews':          p.get('reviews', ''),
+                'link':             p.get('link', '#'),
+                'cheapest_link':    cheapest_link,
+                'cheapest_source':  cheapest_source,
+                'agoda_link':       agoda_link,
+                'booking_link':     booking_link,
+                'trip_link':        trip_link,
+                'thumbnail':        thumb,
+                'nights':           nights,
             }
 
             if max_budget_usd > 0 and price > max_budget_usd:

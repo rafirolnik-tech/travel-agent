@@ -3178,24 +3178,29 @@ function renderHotelsCards(rows, actualNights){
         <div class="hcard-price-total" style="font-size:12px;color:var(--dim);margin:8px 0 4px">מחיר מ-Google Hotels (הודו/סינגפור) · ${esc(r.total_price)} סה"כ · ${nightsLabel}</div>
         ${(()=>{
           const dl=_hotelDeepLinks(r.hotel_name);
-          // Prefer server-provided links (captured at Indian IP) over generated fallbacks
+          // Use cheapest OTA from SerpAPI (captured at Indian IP); fallback to Agoda generated URL
+          const mainHref   = r.cheapest_link || r.agoda_link || dl.agoda;
+          const mainSource = r.cheapest_source
+            ? r.cheapest_source.replace(/\.com$/i,'').replace(/\b\w/g,c=>c.toUpperCase())
+            : 'Agoda';
+          const isDirectLink = !!(r.cheapest_link || r.agoda_link);
           const agodaHref = r.agoda_link   || dl.agoda;
           const bookHref  = r.booking_link || dl.booking;
           const tripHref  = r.trip_link    || dl.trip;
-          const hasDirectLink = !!(r.agoda_link || r.booking_link);
+          const safeMain  = mainHref.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
           return`
-        <a class="hcard-cta" href="${esc(agodaHref)}" target="_blank" rel="noopener">
-          🏷️ ${esc(r.price_per_night)} — הזמן ב-Agoda
-          <span class="hcard-book-sub">${hasDirectLink ? 'קישור ישיר · מחיר כפי שנמצא ↗' : 'עם VPN India הכי זול ↗'}</span>
+        <a class="hcard-cta" href="${esc(mainHref)}" target="_blank" rel="noopener">
+          🏷️ ${esc(r.price_per_night)} — הזמן ב-${esc(mainSource)}
+          <span class="hcard-book-sub">${isDirectLink ? 'הכי זול שנמצא · לאישור סופי לחץ ↗' : 'עם VPN India ↗'}</span>
         </a>
         <div class="hcard-copy-row">
-          <button class="hcard-copy-btn" onclick="_copyLink(this,'${agodaHref.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">📋 העתק</button>
-          <span class="hcard-copy-hint">${hasDirectLink ? 'קישור ישיר ל-Agoda עם תאריכים' : 'העתק → Windscribe India → הדבק'}</span>
+          <button class="hcard-copy-btn" onclick="_copyLink(this,'${safeMain}')">📋 העתק</button>
+          <span class="hcard-copy-hint" style="color:var(--dim);font-size:11px">מחיר בזמן החיפוש — אמת לפני תשלום</span>
         </div>
         <div class="hcard-compare-row">
           <span class="hcard-compare-lbl">השווה:</span>
-          <a class="hcard-compare-link" href="${esc(bookHref)}" target="_blank" rel="noopener"
-             style="background:#003580;color:#fff">Booking</a>
+          ${agodaHref!==mainHref?`<a class="hcard-compare-link" href="${esc(agodaHref)}" target="_blank" rel="noopener" style="background:#e51837;color:#fff">Agoda</a>`:''}
+          ${bookHref!==mainHref?`<a class="hcard-compare-link" href="${esc(bookHref)}" target="_blank" rel="noopener" style="background:#003580;color:#fff">Booking</a>`:''}
           <a class="hcard-compare-link" href="${esc(tripHref)}" target="_blank" rel="noopener"
              style="background:#00a2e0;color:#fff">Trip.com</a>
           <a class="hcard-compare-link" href="${esc(lnk.url)}" target="_blank" rel="noopener"
