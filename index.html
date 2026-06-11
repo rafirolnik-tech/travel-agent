@@ -1381,11 +1381,11 @@ window.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('flight-return').min   =addDays(t,1);
   apiKey=localStorage.getItem('serpapi_key')||'';
 
-  // Check if server has a built-in API key
+  // Check if server has built-in API keys
   let serverHasKey=false;
   try{
     const r=await fetch(`${API}/config`,{signal:AbortSignal.timeout(5000)});
-    if(r.ok){const d=await r.json();serverHasKey=d.has_server_key;}
+    if(r.ok){const d=await r.json();serverHasKey=d.has_server_key;window._hasRapidApiKey=!!d.has_rapidapi_key;}
   }catch{}
 
   if(serverHasKey) apiKey=apiKey||'SERVER';
@@ -2621,6 +2621,59 @@ function _insertDualDivider(){
   wrap.innerHTML='';wrap.appendChild(container);
 }
 
+function doHotelSearchTA(){
+  const p=pending;
+  if(!p||!p.ci||!p.co){alert('חסרים תאריכי שהייה');return;}
+  const cityEn=ssState?.city?.en||ssState?.country?.en||p.query||'';
+  if(!cityEn){alert('לא ניתן לזהות שם עיר באנגלית');return;}
+
+  showResultsPage('hotel');
+  initPG([cityEn]);
+
+  const body={
+    city_en:cityEn, check_in:p.ci, check_out:p.co,
+    adults:p.adults, rooms:p.rooms||1,
+    children_ages:getChildrenAges(),
+    min_stars:stars, max_budget:p.budget,
+  };
+
+  const nights=_nightCount(p.ci,p.co);
+  const dbg=document.getElementById('search-debug');
+  if(dbg){
+    const chip=(icon,text)=>`<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;color:#fff"><span>${icon}</span><span>${text}</span></div>`;
+    dbg.innerHTML=`
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">TripAdvisor Search</div>
+      <div style="font-size:clamp(20px,3.5vw,32px);font-weight:900;color:#fff;margin-bottom:16px">${esc(cityEn)}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:16px">
+        ${chip('📅',`${p.ci} → ${p.co} · ${nights} לילות`)}
+        ${chip('👥',`${p.adults} מבוגרים${getChildrenAges().length?' + '+getChildrenAges().length+' ילדים':''}`)}
+        ${chip('⭐',stars>0?'★'.repeat(stars)+' ומעלה':'כל הכוכבים')}
+        ${chip('💰',p.budget>0?`עד $${p.budget}/לילה`:'ללא הגבלה')}
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);border-top:1px solid rgba(255,255,255,.1);padding-top:10px">
+        TripAdvisor API · מחירים גלובליים · מכסה Booking, Agoda, Expedia ועוד
+      </div>`;
+    dbg.style.display='block';
+  }
+
+  let found=0;
+  streamPost('/search/hotels/ta/stream',body,r=>{
+    if(r.status==='progress') setPG(cityEn,r.message,'found');
+    else if(r.status==='hotels_update'){found=r.hotels.length;renderHotelsCards(r.hotels,r.actual_nights||nights);}
+    else if(r.status==='best') showBest(r.best,'hotel');
+    else if(r.status==='no_results'||r.status==='error'){
+      setPG(cityEn,r.message||r.error||'שגיאה','error');
+      if(found===0) showNoResults(stars,p.budget);
+    }
+    else if(r.status==='done'){
+      document.querySelectorAll('#progress-grid .pg-cell').forEach(cell=>{
+        const stat=cell.querySelector('[id^="pgs-"]');
+        if(stat&&stat.querySelector('.spinner')){cell.className='pg-cell error';stat.innerHTML='<span class="pg-err">לא נמצא</span>';}
+      });
+    }
+  });
+}
+
 function doHotelSearch(appendMode=false){
   if(apiKey==='DEMO'){demoHotelSearch();return}
   const p=pending;
@@ -2670,7 +2723,13 @@ function doHotelSearch(appendMode=false){
       </div>`:''}
       <div style="margin-top:14px;padding:10px 14px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);border-radius:12px;font-size:12px;color:#4ade80;line-height:1.5">
         ✅ <b>מחירים מ-IP הודי/סינגפורי</b> — לחיצה על כפתור הזמנה תעביר אותך ישירות למלון עם המחיר שנמצא
-      </div>`;
+      </div>
+      ${window._hasRapidApiKey?`
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px">🔍 חיפוש מורחב — יותר מלונות, כולל הצעות שגוגל לא מציג:</div>
+        <button onclick="doHotelSearchTA()" style="padding:10px 20px;background:linear-gradient(135deg,#0f766e,#0d9488);border:none;color:#fff;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">🏨 חפש ב-TripAdvisor (15+ מלונות)</button>
+      </div>`:''}`;
+    dbg.style.display='block';
     dbg.style.display='block';
   }
   let foundHotels=0;

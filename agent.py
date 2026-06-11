@@ -15,6 +15,8 @@ CORS(app)
 
 # Server-side SerpAPI key (optional — set SERP_API_KEY env var on Render)
 SERVER_API_KEY = os.environ.get('SERP_API_KEY', '')
+# RapidAPI key for Travel Advisor hotel search (set RAPIDAPI_KEY env var on Render)
+RAPIDAPI_KEY = os.environ.get('RAPIDAPI_KEY', '')
 
 def _resolve_key(client_key):
     """Use client key if provided, otherwise fall back to server key.
@@ -26,8 +28,191 @@ def _resolve_key(client_key):
 
 @app.route('/config')
 def get_config():
-    """Tell the frontend whether a server-side API key is configured."""
-    return jsonify({'has_server_key': bool(SERVER_API_KEY)})
+    return jsonify({
+        'has_server_key':   bool(SERVER_API_KEY),
+        'has_rapidapi_key': bool(RAPIDAPI_KEY),
+    })
+
+# ── TRAVEL ADVISOR (RapidAPI) ────────────────────────────────────────────
+
+_TA_HOST = 'travel-advisor.p.rapidapi.com'
+
+def _ta_headers(key):
+    return {'x-rapidapi-host': _TA_HOST, 'x-rapidapi-key': key, 'Content-Type': 'application/json'}
+
+def _ta_get_location_id(city_en, key):
+    """Returns (location_id, error_str)"""
+    try:
+        resp = requests.post(
+            f'https://{_TA_HOST}/locations/v2/search',
+            json={'query': city_en, 'language': 'en_US', 'currency': 'USD'},
+            headers=_ta_headers(key), timeout=15
+        )
+        if resp.status_code != 200:
+            return None, f'HTTP {resp.status_code}'
+        results = ((resp.json().get('data') or {})
+                   .get('Typeahead_autocomplete', {})
+                   .get('results', []))
+        for r in results:
+            d = r.get('details', {})
+            gt = (d.get('geo_type') or '').lower()
+            if gt in ('city', 'island', 'municipality', 'neighbourhood', 'county', 'hamlet', 'region'):
+                return d.get('location_id'), None
+        if results:
+            return results[0].get('details', {}).get('location_id'), None
+        return None, 'יעד לא נמצא'
+    except Exception as e:
+        return None, str(e)
+
+def _ta_search_hotels(location_id, check_in, check_out, adults, children_ages,
+                       min_stars, max_budget, rooms, nights, key):
+    """Returns (hotels_list, error_str)"""
+    eff_adults = adults
+    eff_children = []
+    for age in children_ages:
+        if int(age) >= 16:
+            eff_adults += 1
+        else:
+            eff_children.append(int(age))
+
+    payload = {
+        'geoId': location_id,
+        'checkIn': check_in,
+        'checkOut': check_out,
+        'rooms': max(1, int(rooms)),
+        'adults': str(eff_adults),
+        'currency': 'USD',
+        'language': 'en_US',
+    }
+    if eff_children:
+        payload['children'] = [{'age': a} for a in eff_children]
+
+    try:
+        resp = requests.post(
+            f'https://{_TA_HOST}/hotel/v2/list',
+            json=payload, headers=_ta_headers(key), timeout=25
+        )
+        if resp.status_code != 200:
+            return [], f'HTTP {resp.status_code}: {resp.text[:300]}'
+
+        raw = (resp.json().get('data') or {}).get('data', [])
+        hotels = []
+
+        for h in raw:
+            name = h.get('title', '')
+            if not name:
+                continue
+
+            price_str = (h.get('priceForDisplay') or {}).get('string', '')
+            price_num = parse_price(price_str)
+            if price_num in (0, float('inf')):
+                continue
+
+            accented = (h.get('accentedLabel') or '').lower()
+            m = _re.search(r'(\d)', accented)
+            stars = int(m.group(1)) if m else None
+            if min_stars >= 4 and (stars is None or stars < min_stars):
+                continue
+            if min_stars == 3 and stars is not None and stars < min_stars:
+                continue
+            if max_budget > 0 and price_num > max_budget:
+                continue
+
+            bubble  = h.get('bubbleRating') or {}
+            rating  = bubble.get('rating', '')
+            rev_raw = (bubble.get('numberReviews') or {}).get('string', '').replace(',', '')
+            rev_num = parse_price(rev_raw)
+
+            commerce  = h.get('commerceInfo') or {}
+            book_url  = commerce.get('externalUrl', '')
+            provider  = commerce.get('provider', '')
+            card_path = (h.get('cardLink') or {}).get('route', {}).get('url', '')
+            ta_url    = f'https://www.tripadvisor.com{card_path}' if card_path else ''
+
+            thumb = ''
+            try:
+                sizes = ((h.get('thumbnail') or {}).get('photo') or {}).get('photoSizes', [])
+                thumb = next((p['url'] for p in sizes if p.get('width', 0) >= 150),
+                             sizes[0]['url'] if sizes else '')
+            except Exception:
+                pass
+
+            plow = provider.lower()
+            hotels.append({
+                'hotel_name':      name,
+                'price_num':       price_num,
+                'price_per_night': f'${price_num:.0f}',
+                'total_price':     f'${price_num * nights:.0f}',
+                'stars':           stars if stars is not None else '',
+                'hotel_class':     h.get('accentedLabel', ''),
+                'rating':          str(rating) if rating else '',
+                'reviews':         int(rev_num) if rev_num != float('inf') else '',
+                'link':            ta_url or book_url,
+                'cheapest_link':   book_url,
+                'cheapest_source': provider,
+                'agoda_link':      book_url if 'agoda' in plow else '',
+                'booking_link':    book_url if 'booking' in plow else '',
+                'trip_link':       book_url if 'trip' in plow else '',
+                'thumbnail':       thumb,
+                'nights':          nights,
+                'source':          'tripadvisor',
+            })
+
+        return sorted(hotels, key=lambda x: x['price_num']), None
+
+    except Exception as e:
+        traceback.print_exc()
+        return [], str(e)
+
+
+@app.route('/search/hotels/ta/stream', methods=['POST'])
+def search_hotels_ta_stream():
+    """Hotel search via Travel Advisor (RapidAPI) — SSE"""
+    data          = request.json or {}
+    key           = (data.get('rapidapi_key', '') or '').strip() or RAPIDAPI_KEY
+    city_en       = (data.get('city_en', '') or '').strip()
+    check_in      = data.get('check_in', '')
+    check_out     = data.get('check_out', '')
+    adults        = max(int(data.get('adults', 2) or 2), 1)
+    rooms         = max(int(data.get('rooms', 1) or 1), 1)
+    children_ages = data.get('children_ages', [])
+    min_stars     = int(data.get('min_stars', 0))
+    max_budget    = float(data.get('max_budget', 0))
+
+    if not key:
+        return jsonify({'error': 'rapidapi_key required'}), 400
+    if not city_en:
+        return jsonify({'error': 'city_en required'}), 400
+
+    nights = _calc_nights(check_in, check_out)
+
+    def generate():
+        yield f"data: {json.dumps({'status':'progress','country':city_en,'message':'מחפש יעד...'}, ensure_ascii=False)}\n\n"
+        location_id, err = _ta_get_location_id(city_en, key)
+        if not location_id:
+            yield f"data: {json.dumps({'status':'error','country':city_en,'error':err or 'יעד לא נמצא'}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'status':'done'}, ensure_ascii=False)}\n\n"
+            return
+
+        yield f"data: {json.dumps({'status':'progress','country':city_en,'message':'מחפש מלונות...'}, ensure_ascii=False)}\n\n"
+        hotels, err = _ta_search_hotels(
+            location_id, check_in, check_out, adults, children_ages,
+            min_stars, max_budget, rooms, nights, key
+        )
+
+        if err:
+            yield f"data: {json.dumps({'status':'error','country':city_en,'error':err}, ensure_ascii=False)}\n\n"
+        elif not hotels:
+            yield f"data: {json.dumps({'status':'no_results','country':city_en,'message':'לא נמצאו מלונות בפרמטרים אלה'}, ensure_ascii=False)}\n\n"
+        else:
+            yield f"data: {json.dumps({'status':'progress','country':city_en,'message':f'{len(hotels)} מלונות'}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'status':'hotels_update','hotels':hotels}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'status':'best','best':hotels[0]}, ensure_ascii=False)}\n\n"
+
+        yield f"data: {json.dumps({'status':'done'}, ensure_ascii=False)}\n\n"
+
+    return Response(generate(), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 # מדינות לבדיקת geo-pricing
 GEO_COUNTRIES = {
